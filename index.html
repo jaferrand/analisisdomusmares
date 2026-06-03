@@ -1,793 +1,867 @@
-import { useState } from “react”;
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from “recharts”;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Domus Mare · Informe Instagram · Junio 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f5f4f0;font-family:Georgia,serif;color:#4a5568;padding-bottom:60px}
+.header{background:#1a3a5c;padding:30px 20px 26px}
+.header-sup{color:#8ab4d8;font-size:0.68rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;margin-bottom:10px;font-family:sans-serif}
+.header h1{color:#fff;font-size:1.5rem;font-weight:400;margin:0 0 4px;letter-spacing:.04em}
+.header h2{color:#b8973a;font-size:1.5rem;font-weight:700;margin:0 0 20px;letter-spacing:.06em}
+.header-hr{height:1px;background:rgba(184,151,58,.35);margin-bottom:20px}
+.header-kpis{display:flex;gap:10px;flex-wrap:wrap}
+.header-kpi{flex:1;min-width:88px;background:rgba(255,255,255,.07);border:1px solid rgba(184,151,58,.3);border-radius:8px;padding:12px 14px}
+.header-kpi-val{color:#fff;font-size:1.45rem;font-weight:700}
+.header-kpi-lab{color:#8ab4d8;font-size:.72rem;margin-top:4px;font-family:sans-serif}
+.nav{background:#fff;border-bottom:1px solid #ddd9d0;padding:14px}
+.nav-label{font-size:.68rem;color:#8a9bb0;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px;font-family:sans-serif}
+.nav-tabs{display:flex;flex-wrap:wrap;gap:8px}
+.nav-tab{padding:12px 18px;font-size:.85rem;font-weight:700;font-family:Georgia,serif;letter-spacing:.04em;cursor:pointer;border-radius:8px;border:2px solid #ddd9d0;background:#f8f8f8;color:#2d3748;transition:all .15s}
+.nav-tab.active{border-color:#1a3a5c;background:#1a3a5c;color:#fff;box-shadow:0 2px 8px rgba(26,58,92,.2)}
+.content{padding:8px 14px;max-width:680px;margin:0 auto}
+.card{background:#fff;border:1px solid #ddd9d0;border-radius:12px;padding:18px 16px;box-shadow:0 2px 8px rgba(26,26,46,.06);margin-bottom:12px}
+.seccion{display:flex;align-items:center;gap:12px;margin:28px 0 14px;padding-bottom:10px;border-bottom:1px solid #ddd9d0}
+.seccion-bar{width:3px;height:20px;background:#b8973a;border-radius:2px;flex-shrink:0}
+.seccion h2{color:#1a1a2e;font-size:.8rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin:0}
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi-label{color:#8a9bb0;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;margin-bottom:8px;font-family:sans-serif}
+.kpi-value{color:#1a1a2e;font-size:2.2rem;font-weight:700;line-height:1}
+.kpi-sub{color:#8a9bb0;font-size:.8rem;margin-top:6px}
+.kpi-badge{display:inline-block;margin-top:8px;font-weight:600;font-size:.85rem;padding:3px 10px;border-radius:4px;font-family:sans-serif}
+.badge-green{color:#1a4731;background:#d4edda}
+.badge-red{color:#7f1d1d;background:#fde8e8}
+/* Plegable */
+.plegable-btn{background:#f5f4f0;border:1px solid #ddd9d0;border-radius:8px;padding:11px 14px;color:#1a3a5c;font-size:.82rem;font-weight:600;cursor:pointer;width:100%;text-align:left;font-family:Georgia,serif;letter-spacing:.03em;margin-top:12px;display:flex;justify-content:space-between;align-items:center;transition:background .15s}
+.plegable-btn:hover{background:#e8f0f7;border-color:#a8c4d8}
+.plegable-btn .chevron{display:inline-block;width:18px;height:18px;flex-shrink:0;transition:transform .25s;color:#1a3a5c}
+.plegable-btn.open .chevron{transform:rotate(180deg)}
+.nota{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.nota-que{background:#e8f0f7;border-left:3px solid #1a3a5c;border-radius:8px;padding:11px 14px}
+.nota-que-title{color:#1a3a5c;font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px;font-family:sans-serif}
+.nota-que-body{color:#2d3748;font-size:.86rem;line-height:1.75}
+.nota-imp{background:#f5eac8;border-left:3px solid #b8973a;border-radius:8px;padding:11px 14px}
+.nota-imp-title{color:#7a5c10;font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px;font-family:sans-serif}
+.nota-imp-body{color:#2d3748;font-size:.86rem;line-height:1.75}
+/* Barras */
+.bar-row{margin-bottom:18px}
+.bar-row-header{display:flex;justify-content:space-between;margin-bottom:7px}
+.bar-label{color:#2d3748;font-size:.92rem;font-weight:500}
+.bar-val{color:#1a1a2e;font-weight:800;font-size:1.05rem}
+.bar-track{background:#ece9e2;border-radius:5px;height:16px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;min-width:4px}
+/* Torta */
+.gender-row{margin-bottom:20px}
+.gender-header{display:flex;justify-content:space-between;margin-bottom:8px;align-items:center}
+.gender-dot{width:12px;height:12px;border-radius:2px;flex-shrink:0;display:inline-block;margin-right:10px}
+.gender-name{color:#2d3748;font-size:1rem;font-weight:600}
+.gender-pct{color:#1a1a2e;font-weight:800;font-size:1.4rem}
+.gender-track{background:#ece9e2;border-radius:6px;height:22px;overflow:hidden}
+/* Horario vertical */
+.horas{display:flex;align-items:flex-end;gap:6px;height:160px;padding:0 4px;margin-bottom:10px}
+.hora-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
+.hora-bar-wrap{flex:1;display:flex;align-items:flex-end;width:100%}
+.hora-bar{width:100%;border-radius:4px 4px 0 0;transition:height .3s}
+.hora-label{color:#4a5568;font-size:.72rem;font-family:sans-serif}
+/* Pie SVG */
+.pie-center{display:flex;justify-content:center;margin:8px 0 4px}
+/* Listas top */
+.top-row{display:flex;justify-content:space-between;align-items:center}
+.top-num{color:#b8973a;font-size:1.1rem;font-weight:700;min-width:26px}
+.top-title{color:#1a1a2e;font-weight:600;font-size:.92rem}
+.top-date{color:#8a9bb0;font-size:.78rem;margin-top:3px}
+.top-val{color:#1a3a5c;font-weight:700;font-size:1.15rem}
+.top-meta{color:#8a9bb0;font-size:.7rem;font-family:sans-serif}
+/* Patron */
+.patron{background:#f5eac8;border:1px solid #d4ba6a;border-radius:12px;padding:18px 16px;margin-bottom:12px}
+.patron-title{color:#7a5c10;font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;font-family:sans-serif}
+.patron-body{color:#2d3748;font-size:.88rem;line-height:1.75}
+/* Estrategia */
+.rec-card{border-radius:12px;padding:18px 16px;margin-bottom:12px;border-left-width:4px;border-style:solid}
+.rec-nivel{font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.7);padding:3px 10px;border-radius:4px;margin-bottom:8px;display:inline-block;font-family:sans-serif}
+.rec-titulo{font-weight:700;font-size:.95rem;margin-bottom:10px;color:#1a1a2e}
+.rec-accion{font-size:.86rem;margin-bottom:8px;line-height:1.75;color:#2d3748}
+.rec-porque{font-size:.84rem;line-height:1.75;color:#4a5568}
+.metric-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;align-items:flex-start}
+.metric-name{color:#1a1a2e;font-size:.92rem;font-weight:700}
+.metric-meta{color:#1a4731;font-size:.82rem;font-weight:600;background:#d4edda;padding:3px 10px;border-radius:4px;font-family:sans-serif}
+.metric-actual{color:#4a5568;font-size:.84rem;margin-bottom:5px}
+.metric-desc{color:#8a9bb0;font-size:.8rem;line-height:1.6}
+.footer-note{margin-top:36px;color:#8a9bb0;font-size:.7rem;text-align:center;letter-spacing:.08em;font-family:sans-serif}
+/* Engagement grid */
+.eng-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.eng-cell{background:#f5f4f0;border:1px solid #ece9e2;border-radius:8px;padding:12px 10px}
+.eng-val{color:#1a1a2e;font-weight:700;font-size:1.3rem}
+.eng-name{color:#1a3a5c;font-size:.8rem;font-weight:600;margin-top:2px;font-family:sans-serif}
+.eng-desc{color:#8a9bb0;font-size:.72rem;margin-top:2px;font-family:sans-serif}
+/* 90d grid */
+.growth-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.growth-cell{border-radius:8px;padding:14px 8px;text-align:center}
+.growth-val{font-weight:700;font-size:1.4rem}
+.growth-lab{font-size:.72rem;margin-top:5px;line-height:1.4;font-family:sans-serif}
+/* Balance */
+.balance-row{margin-bottom:18px}
+.balance-header{display:flex;justify-content:space-between;margin-bottom:7px}
+.balance-label{color:#2d3748;font-weight:600;font-size:.9rem}
+.balance-pct{color:#1a1a2e;font-weight:800;font-size:1rem}
+/* Perfil audiencia */
+.perfil-row{padding:12px 0;border-bottom:1px solid #ece9e2}
+.perfil-row:last-child{border-bottom:none}
+.perfil-campo{color:#8a9bb0;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-family:sans-serif}
+.perfil-valor{color:#1a1a2e;font-size:.98rem;font-weight:700;margin-top:3px}
+.perfil-detalle{color:#4a5568;font-size:.82rem;margin-top:3px}
+/* Conclusión */
+.conclusion{background:#e8f0f7;border:1px solid #a8c4d8;border-radius:12px;padding:18px 16px;margin-top:8px}
+.conclusion-title{color:#8a9bb0;font-size:.7rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px;font-family:sans-serif}
+.conclusion-body{color:#2d3748;font-size:.9rem;line-height:1.85}
+/* Aviso */
+.aviso{background:#fff8ee;border:1px solid #e8c87a;border-radius:12px;padding:18px 16px;margin-top:16px;margin-bottom:4px}
+.aviso-title{color:#7a5c10;font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;font-family:sans-serif}
+.aviso-body{color:#2d3748;font-size:.88rem;line-height:1.7}
+/* Tab panels */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+</style>
+</head>
+<body>
 
-const P = {
-bg:          “#f5f4f0”,
-card:        “#ffffff”,
-borde:       “#ddd9d0”,
-bordeClaro:  “#ece9e2”,
-titulo:      “#1a1a2e”,
-subtitulo:   “#2d3748”,
-texto:       “#4a5568”,
-suave:       “#8a9bb0”,
-acento:      “#1a3a5c”,
-dorado:      “#b8973a”,
-doradoClaro: “#f5eac8”,
-azulPale:    “#e8f0f7”,
-verdePale:   “#d4edda”,
-verdeOsc:    “#1a4731”,
-rojoPale:    “#fde8e8”,
-rojoOsc:     “#7f1d1d”,
-};
-
-// ── Tarjeta base ──────────────────────────────────────────────
-function Card({ children, style }) {
-return (
-<div style={{
-background: P.card, border: `1px solid ${P.borde}`, borderRadius: 12,
-padding: “18px 16px”, boxShadow: “0 2px 8px rgba(26,26,46,0.06)”, …style
-}}>
-{children}
+<!-- HEADER -->
+<div class="header">
+  <div class="header-sup">Informe de Desempeño · Instagram · Junio 2026</div>
+  <h1>Hotel &amp; Restaurante</h1>
+  <h2>Domus Mare</h2>
+  <div class="header-hr"></div>
+  <div class="header-kpis">
+    <div class="header-kpi"><div class="header-kpi-val">18.422</div><div class="header-kpi-lab">Seguidores</div></div>
+    <div class="header-kpi"><div class="header-kpi-val">0.57%</div><div class="header-kpi-lab">Engagement</div></div>
+    <div class="header-kpi"><div class="header-kpi-val">146K</div><div class="header-kpi-lab">Visualizaciones</div></div>
+  </div>
 </div>
-);
-}
 
-// ── Nota explicativa siempre visible ─────────────────────────
-function Nota({ que, implica }) {
-return (
-<div style={{ marginTop: 14, display: “flex”, flexDirection: “column”, gap: 8 }}>
-<div style={{
-background: P.azulPale, borderLeft: `3px solid ${P.acento}`,
-borderRadius: 8, padding: “11px 14px”
-}}>
-<div style={{
-color: P.acento, fontSize: “0.7rem”, fontWeight: 800,
-letterSpacing: “0.14em”, textTransform: “uppercase”, marginBottom: 5
-}}>Qué mide</div>
-<div style={{ color: P.subtitulo, fontSize: “0.86rem”, lineHeight: 1.75 }}>{que}</div>
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-label">Seleccione una sección</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('resumen',this)">Resumen</button>
+    <button class="nav-tab" onclick="showTab('audiencia',this)">Audiencia</button>
+    <button class="nav-tab" onclick="showTab('contenido',this)">Contenido</button>
+    <button class="nav-tab" onclick="showTab('anuncios',this)">Anuncios</button>
+    <button class="nav-tab" onclick="showTab('estrategia',this)">Estrategia</button>
+  </div>
 </div>
-<div style={{
-background: P.doradoClaro, borderLeft: `3px solid ${P.dorado}`,
-borderRadius: 8, padding: “11px 14px”
-}}>
-<div style={{
-color: “#7a5c10”, fontSize: “0.7rem”, fontWeight: 800,
-letterSpacing: “0.14em”, textTransform: “uppercase”, marginBottom: 5
-}}>Lo que implica</div>
-<div style={{ color: P.subtitulo, fontSize: “0.86rem”, lineHeight: 1.75 }}>{implica}</div>
-</div>
-</div>
-);
-}
 
-// ── Explicación plegable (para secciones no-audiencia) ────────
-function Plegable({ que, implica }) {
-const [open, setOpen] = useState(false);
-return (
-<div style={{ marginTop: 12 }}>
-<button onClick={() => setOpen(o => !o)} style={{
-background: P.bg, border: `1px solid ${P.borde}`, borderRadius: 8,
-padding: “9px 14px”, color: P.acento, fontSize: “0.82rem”, fontWeight: 600,
-cursor: “pointer”, width: “100%”, textAlign: “left”, fontFamily: “Georgia, serif”,
-letterSpacing: “0.03em”
-}}>
-{open ? “— Ocultar explicación” : “+ ¿Qué significa este número?”}
-</button>
-{open && <Nota que={que} implica={implica} />}
-</div>
-);
-}
+<div class="content">
 
-// ── KPI ───────────────────────────────────────────────────────
-function KPI({ label, valor, sub, pct, pctPos = true, que, implica }) {
-return (
-<Card style={{ marginBottom: 12 }}>
-<div style={{
-color: P.suave, fontSize: “0.7rem”, fontWeight: 700,
-textTransform: “uppercase”, letterSpacing: “0.14em”, marginBottom: 8
-}}>{label}</div>
-<div style={{
-color: P.titulo, fontSize: “2.2rem”, fontWeight: 700,
-lineHeight: 1, fontFamily: “Georgia, serif”
-}}>{valor}</div>
-{sub && <div style={{ color: P.suave, fontSize: “0.8rem”, marginTop: 6 }}>{sub}</div>}
-{pct != null && (
-<div style={{ marginTop: 8 }}>
-<span style={{
-color: pctPos ? P.verdeOsc : P.rojoOsc, fontWeight: 600, fontSize: “0.85rem”,
-background: pctPos ? P.verdePale : P.rojoPale,
-padding: “3px 10px”, borderRadius: 4
-}}>
-{pctPos ? “+” : “–”}{pct}%
-</span>
-</div>
-)}
-{(que || implica) && <Plegable que={que} implica={implica} />}
-</Card>
-);
-}
+<!-- ═══ RESUMEN ═══ -->
+<div id="tab-resumen" class="tab-panel active">
 
-// ── Título de sección ─────────────────────────────────────────
-function Seccion({ titulo }) {
-return (
-<div style={{
-display: “flex”, alignItems: “center”, gap: 12,
-margin: “28px 0 14px”, paddingBottom: 10, borderBottom: `1px solid ${P.borde}`
-}}>
-<div style={{ width: 3, height: 20, background: P.dorado, borderRadius: 2, flexShrink: 0 }} />
-<h2 style={{
-color: P.titulo, fontSize: “0.8rem”, fontWeight: 700,
-letterSpacing: “0.16em”, textTransform: “uppercase”, margin: 0,
-fontFamily: “Georgia, serif”
-}}>{titulo}</h2>
-</div>
-);
-}
-
-// ── Gráfico de torta ──────────────────────────────────────────
-function Torta({ titulo, datos, que, implica }) {
-return (
-<Card style={{ marginBottom: 16 }}>
-<div style={{
-color: P.titulo, fontWeight: 700, fontSize: “0.95rem”,
-marginBottom: 18, fontFamily: “Georgia, serif”
-}}>{titulo}</div>
-
-```
-  {/* Barras de género grandes y claras */}
-  {datos.map((d, i) => (
-    <div key={d.name} style={{ marginBottom: 20 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{
-            width: 12, height: 12, borderRadius: 2,
-            background: d.color, flexShrink: 0
-          }} />
-          <span style={{ color: P.subtitulo, fontSize: "1rem", fontWeight: 600 }}>{d.name}</span>
-        </div>
-        <span style={{
-          color: P.titulo, fontWeight: 800, fontSize: "1.4rem",
-          fontFamily: "Georgia, serif"
-        }}>{d.value}%</span>
+  <!-- 1. AUDIENCIA PRIMERO -->
+  <div class="seccion"><div class="seccion-bar"></div><h2>A quién le hablas</h2></div>
+  <div class="card" style="margin-bottom:12px">
+    <div style="color:#8a9bb0;font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px;font-family:sans-serif">Lo más importante de este informe</div>
+    <div style="color:#2d3748;font-size:.88rem;line-height:1.7;margin-bottom:16px">Antes de ver los números, necesitas saber <strong>quién está del otro lado de la pantalla</strong>. Todos los datos de este informe cobran sentido cuando conoces a tu audiencia real.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="background:#e8f0f7;border-radius:10px;padding:14px 12px;border-left:3px solid #1a3a5c">
+        <div style="color:#8a9bb0;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-family:sans-serif;margin-bottom:6px">Género</div>
+        <div style="color:#1a1a2e;font-size:1.4rem;font-weight:700">Mujeres</div>
+        <div style="color:#1a3a5c;font-size:1.05rem;font-weight:700;margin-top:2px">68,1%</div>
+        <div style="color:#4a5568;font-size:.8rem;margin-top:5px;line-height:1.55">Ella decide cuándo y dónde reservar: para la pareja, para el cumpleaños, para la escapada de fin de semana.</div>
       </div>
-      <div style={{ background: P.bordeClaro, borderRadius: 6, height: 22, overflow: "hidden" }}>
-        <div style={{
-          width: `${d.value}%`, background: d.color,
-          height: "100%", borderRadius: 6
-        }} />
+      <div style="background:#e8f0f7;border-radius:10px;padding:14px 12px;border-left:3px solid #1a3a5c">
+        <div style="color:#8a9bb0;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-family:sans-serif;margin-bottom:6px">Edad</div>
+        <div style="color:#1a1a2e;font-size:1.4rem;font-weight:700">35 – 54 años</div>
+        <div style="color:#1a3a5c;font-size:1.05rem;font-weight:700;margin-top:2px">62,6%</div>
+        <div style="color:#4a5568;font-size:.8rem;margin-top:5px;line-height:1.55">Adulta con trabajo estable y capacidad de gasto. Prioriza calidad y experiencia por sobre precio.</div>
+      </div>
+      <div style="background:#f5eac8;border-radius:10px;padding:14px 12px;border-left:3px solid #b8973a">
+        <div style="color:#8a9bb0;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-family:sans-serif;margin-bottom:6px">Ciudad</div>
+        <div style="color:#1a1a2e;font-size:1.4rem;font-weight:700">Santiago</div>
+        <div style="color:#b8973a;font-size:1.05rem;font-weight:700;margin-top:2px">83,4% del total</div>
+        <div style="color:#4a5568;font-size:.8rem;margin-top:5px;line-height:1.55">Busca salir de la ciudad el fin de semana. Viña del Mar es su destino natural más cercano para descansar.</div>
+      </div>
+      <div style="background:#f5eac8;border-radius:10px;padding:14px 12px;border-left:3px solid #b8973a">
+        <div style="color:#8a9bb0;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-family:sans-serif;margin-bottom:6px">Cuándo está activa</div>
+        <div style="color:#1a1a2e;font-size:1.4rem;font-weight:700">15:00 – 21:00</div>
+        <div style="color:#b8973a;font-size:1.05rem;font-weight:700;margin-top:2px">Mayor actividad: 18h</div>
+        <div style="color:#4a5568;font-size:.8rem;margin-top:5px;line-height:1.55">Navega Instagram en la tarde-noche, cuando termina el trabajo. Ahí es cuando decide su próximo plan.</div>
       </div>
     </div>
-  ))}
-
-  {/* Torta pequeña decorativa */}
-  <div style={{ display: "flex", justifyContent: "center", margin: "8px 0 4px" }}>
-    <PieChart width={120} height={120}>
-      <Pie data={datos} cx={60} cy={60} innerRadius={35} outerRadius={55}
-        dataKey="value" strokeWidth={2} stroke="#fff">
-        {datos.map((d, i) => <Cell key={i} fill={d.color} />)}
-      </Pie>
-    </PieChart>
-  </div>
-
-  <Nota que={que} implica={implica} />
-</Card>
-```
-
-);
-}
-
-// ── Barras horizontales ───────────────────────────────────────
-function BarrasH({ titulo, datos, labelKey, valueKey, palette, que, implica }) {
-const max = Math.max(…datos.map(d => d[valueKey])) || 1;
-const cols = palette || Array(10).fill(P.acento);
-return (
-<Card style={{ marginBottom: 16 }}>
-<div style={{
-color: P.titulo, fontWeight: 700, fontSize: “0.95rem”,
-marginBottom: 18, fontFamily: “Georgia, serif”
-}}>{titulo}</div>
-
-```
-  {datos.map((d, i) => (
-    <div key={i} style={{ marginBottom: 18 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
-        <span style={{ color: P.subtitulo, fontSize: "0.92rem", fontWeight: 500 }}>{d[labelKey]}</span>
-        <span style={{
-          color: P.titulo, fontWeight: 800, fontSize: "1.05rem",
-          fontFamily: "Georgia, serif"
-        }}>{d[valueKey]}%</span>
-      </div>
-      <div style={{ background: P.bordeClaro, borderRadius: 5, height: 16, overflow: "hidden" }}>
-        <div style={{
-          width: `${(d[valueKey] / max) * 100}%`,
-          background: cols[i % cols.length],
-          height: "100%", borderRadius: 5,
-          minWidth: d[valueKey] > 0 ? 4 : 0
-        }} />
-      </div>
-    </div>
-  ))}
-
-  <Nota que={que} implica={implica} />
-</Card>
-```
-
-);
-}
-
-// ── Barras verticales (horarios) ──────────────────────────────
-function BarrasV({ titulo, datos, que, implica }) {
-return (
-<Card style={{ marginBottom: 16 }}>
-<div style={{
-color: P.titulo, fontWeight: 700, fontSize: “0.95rem”,
-marginBottom: 16, fontFamily: “Georgia, serif”
-}}>{titulo}</div>
-
-```
-  <ResponsiveContainer width="100%" height={200}>
-    <BarChart data={datos} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-      <CartesianGrid strokeDasharray="3 3" stroke={P.bordeClaro} />
-      <XAxis dataKey="hora"
-        tick={{ fill: P.texto, fontSize: 13, fontFamily: "Georgia, serif" }}
-        axisLine={false} tickLine={false} />
-      <YAxis tick={{ fill: P.suave, fontSize: 11 }} axisLine={false} tickLine={false} />
-      <Tooltip
-        formatter={(v) => [v, "Nivel de actividad"]}
-        contentStyle={{
-          background: "#fff", border: `1px solid ${P.borde}`,
-          borderRadius: 8, fontSize: "0.88rem",
-          fontFamily: "Georgia, serif", color: P.titulo
-        }} />
-      <Bar dataKey="val" radius={[5, 5, 0, 0]}>
-        {datos.map((d, i) => (
-          <Cell key={i}
-            fill={d.val >= 80 ? P.acento : d.val >= 50 ? "#4078a8" : "#c8d9e8"} />
-        ))}
-      </Bar>
-    </BarChart>
-  </ResponsiveContainer>
-
-  <div style={{
-    textAlign: "center", marginTop: 12, background: P.azulPale,
-    border: `1px solid #c8d9e8`, borderRadius: 8, padding: "11px"
-  }}>
-    <span style={{
-      color: P.acento, fontWeight: 600, fontSize: "0.92rem",
-      fontFamily: "Georgia, serif"
-    }}>Pico de actividad: 15:00 – 21:00 hrs</span>
-  </div>
-
-  <Nota que={que} implica={implica} />
-</Card>
-```
-
-);
-}
-
-// ── TABS ──────────────────────────────────────────────────────
-const TABS = [“Resumen”, “Audiencia”, “Contenido”, “Anuncios”, “Estrategia”];
-
-export default function App() {
-const [tab, setTab] = useState(“Resumen”);
-const eng = ((3139 / 3 / 18422) * 100).toFixed(2);
-
-return (
-<div style={{ background: P.bg, minHeight: “100vh”, fontFamily: “Georgia, serif”, paddingBottom: 60 }}>
-
-```
-  {/* HEADER */}
-  <div style={{ background: P.acento, padding: "30px 20px 26px" }}>
-    <div style={{
-      color: "#8ab4d8", fontSize: "0.68rem", fontWeight: 700,
-      letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 10
-    }}>Informe de Desempeño · Instagram · Junio 2026</div>
-    <h1 style={{
-      color: "#ffffff", fontSize: "1.5rem", fontWeight: 400,
-      margin: "0 0 4px", letterSpacing: "0.04em"
-    }}>Hotel &amp; Restaurante</h1>
-    <h2 style={{
-      color: P.dorado, fontSize: "1.5rem", fontWeight: 700,
-      margin: "0 0 20px", letterSpacing: "0.06em"
-    }}>Domus Mare</h2>
-    <div style={{ height: 1, background: "rgba(184,151,58,0.35)", marginBottom: 20 }} />
-    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-      {[
-        { label: "Seguidores",     valor: "18.422" },
-        { label: "Engagement",     valor: `${eng}%` },
-        { label: "Visualizaciones",valor: "146K"   },
-      ].map(k => (
-        <div key={k.label} style={{
-          flex: 1, minWidth: 88,
-          background: "rgba(255,255,255,0.07)",
-          border: "1px solid rgba(184,151,58,0.3)",
-          borderRadius: 8, padding: "12px 14px"
-        }}>
-          <div style={{
-            color: "#fff", fontSize: "1.45rem", fontWeight: 700, fontFamily: "Georgia, serif"
-          }}>{k.valor}</div>
-          <div style={{ color: "#8ab4d8", fontSize: "0.72rem", marginTop: 4 }}>{k.label}</div>
-        </div>
-      ))}
+    <div style="background:#1a3a5c;border-radius:10px;padding:16px">
+      <div style="color:#b8973a;font-size:.68rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px;font-family:sans-serif">Tu cliente en una frase</div>
+      <div style="color:#ffffff;font-size:.95rem;line-height:1.8">Una <strong style="color:#f5eac8">mujer santiaguina de 35 a 54 años</strong> que planifica escapadas de calidad, toma las decisiones de reserva y está dispuesta a pagar bien cuando la propuesta la convence.</div>
     </div>
   </div>
 
-  {/* NAVEGACIÓN */}
-  <div style={{ background: "#ffffff", borderBottom: `1px solid ${P.borde}`, padding: "14px 14px 14px" }}>
-    <div style={{ fontSize: "0.68rem", color: P.suave, fontWeight: 700,
-      letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 10 }}>
-      Seleccione una sección
+  <!-- 2. NÚMEROS CLAVE DEL MES -->
+  <div class="seccion"><div class="seccion-bar"></div><h2>Números del mes · Mayo 2026</h2></div>
+  <div style="background:#e8f0f7;border-radius:10px;padding:12px 14px;margin-bottom:12px;border-left:3px solid #1a3a5c">
+    <div style="color:#1a3a5c;font-size:.78rem;font-weight:600;line-height:1.65">Estos son los indicadores que resumen lo que pasó en Instagram durante el último mes. Cada número tiene un botón para entender qué significa y por qué importa.</div>
+  </div>
+  <div class="kpi-grid">
+    <div class="card">
+      <div class="kpi-label">Visualizaciones</div>
+      <div class="kpi-value">146.076</div>
+      <div class="kpi-sub">4 may – 2 jun</div>
+      <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="nota" style="display:none">
+        <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Cuántas veces fue visto cualquier contenido en pantalla. Cuenta también si la misma persona lo vio más de una vez.</div></div>
+        <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">146 mil visualizaciones en un mes es un volumen alto para un hotel boutique. Incluye tanto publicaciones normales como anuncios pagados.</div></div>
+      </div>
     </div>
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-      {TABS.map(t => (
-        <button key={t} onClick={() => setTab(t)} style={{
-          padding: "12px 18px",
-          fontSize: "0.85rem",
-          fontWeight: 700,
-          fontFamily: "Georgia, serif",
-          letterSpacing: "0.04em",
-          cursor: "pointer",
-          borderRadius: 8,
-          border: tab === t ? `2px solid ${P.acento}` : `2px solid ${P.borde}`,
-          background: tab === t ? P.acento : "#f8f8f8",
-          color: tab === t ? "#ffffff" : P.subtitulo,
-          boxShadow: tab === t ? "0 2px 8px rgba(26,58,92,0.2)" : "none"
-        }}>{t}</button>
-      ))}
+    <div class="card">
+      <div class="kpi-label">Personas alcanzadas</div>
+      <div class="kpi-value">60.187</div>
+      <span class="kpi-badge badge-green">+28,1%</span>
+      <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="nota" style="display:none">
+        <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Cantidad de personas distintas que vieron al menos un contenido. No repite si la misma persona lo vio varias veces.</div></div>
+        <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">60 mil personas únicas, con un crecimiento del +28% respecto al mes anterior. Este es el dato más honesto del alcance real de la cuenta.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kpi-label">Nuevos seguidores</div>
+      <div class="kpi-value">+457</div>
+      <div class="kpi-sub">607 llegaron · 150 se fueron</div>
+      <span class="kpi-badge badge-green">+2,5%</span>
+      <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="nota" style="display:none">
+        <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">La diferencia entre quienes empezaron a seguir la cuenta y quienes dejaron de hacerlo en el mes.</div></div>
+        <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">Los 150 que se fueron es un número normal y esperado. Lo importante es el saldo positivo de +457, que muestra una comunidad que crece mes a mes.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kpi-label">Interacciones</div>
+      <div class="kpi-value">1.300</div>
+      <div class="kpi-sub">likes, comentarios, guardados</div>
+      <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="nota" style="display:none">
+        <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">La suma de todas las acciones que los usuarios realizaron sobre el contenido: dar like, comentar, guardar o compartir.</div></div>
+        <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">1.300 interacciones sobre 60 mil personas alcanzadas significa que 1 de cada 46 personas reaccionó activamente. Es un ratio normal para el sector hotelero.</div></div>
+      </div>
     </div>
   </div>
 
-  <div style={{ padding: "8px 14px", maxWidth: 680, margin: "0 auto" }}>
-
-    {/* ══════════════ RESUMEN ══════════════ */}
-    {tab === "Resumen" && (<>
-      <Seccion titulo="Alcance · Últimos 30 días" />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <KPI label="Visualizaciones" valor="146.076" sub="4 may – 2 jun"
-          que="Cuántas veces fue visto cualquier contenido en pantalla. Incluye repeticiones del mismo usuario."
-          implica="146 mil visualizaciones en un mes es un volumen alto para un hotel boutique. Incluye tanto contenido orgánico como anuncios pagados." />
-        <KPI label="Personas alcanzadas" valor="60.187" pct={28.1}
-          que="Número de cuentas únicas que vieron al menos una vez algún contenido. No repite a la misma persona."
-          implica="60 mil personas únicas con un +28% respecto al mes anterior. Este es el dato más representativo del alcance real." />
-        <KPI label="Nuevos seguidores" valor="+457" sub="607 entraron · 150 se fueron" pct={2.5}
-          que="Diferencia entre quienes comenzaron a seguir la cuenta y quienes dejaron de hacerlo en el período."
-          implica="Los 150 que se retiraron es un número normal y bajo. El crecimiento neto de +457 en un mes es saludable para esta categoría." />
-        <KPI label="Interacciones" valor="1.300" sub="likes, comentarios, guardados"
-          que="Suma de todas las acciones de los usuarios sobre el contenido: like, comentar, guardar, compartir o repostear."
-          implica="1.300 interacciones sobre 60 mil personas alcanzadas. Equivale a 1 de cada 46 personas alcanzadas, ratio normal para el sector hotelero." />
+  <!-- 3. ACTIVIDAD DEL PERFIL -->
+  <div class="seccion"><div class="seccion-bar"></div><h2>¿Cuántos quisieron saber más?</h2></div>
+  <div style="background:#f5eac8;border-radius:10px;padding:12px 14px;margin-bottom:12px;border-left:3px solid #b8973a">
+    <div style="color:#7a5c10;font-size:.78rem;font-weight:600;line-height:1.65">Esta sección muestra cuántas personas pasaron de ver el contenido a tomar una acción concreta: visitar el perfil, tocar el enlace de la bio o buscar cómo llegar. Son los pasos previos a una reserva real.</div>
+  </div>
+  <div class="kpi-grid">
+    <div class="card">
+      <div class="kpi-label">Visitas al perfil</div>
+      <div class="kpi-value">3.920</div>
+      <span class="kpi-badge badge-green">+25,4%</span>
+      <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="nota" style="display:none">
+        <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Cuántas veces alguien entró a revisar el perfil completo: la bio, las publicaciones y el enlace.</div></div>
+        <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">3.920 visitas con un +25% de crecimiento. Cuando alguien visita el perfil, está a un toque de hacer una reserva. Este número va en la dirección correcta.</div></div>
       </div>
-
-      <Seccion titulo="Actividad del Perfil · Últimos 30 días" />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <KPI label="Visitas al perfil" valor="3.920" pct={25.4}
-          que="Cuántas veces alguien ingresó a ver la página completa del perfil: bio, publicaciones y enlace."
-          implica="+25% de crecimiento. El contenido está generando suficiente interés para que las personas visiten el perfil — paso previo a una reserva." />
-        <KPI label="Toques al enlace" valor="265" pct={42.5}
-          que="Cuántas veces alguien tocó el link en la bio del perfil para ir al sitio web o sistema de reservas."
-          implica="265 personas con intención real de reservar (+42,5%). Es el indicador más cercano a ingresos reales de toda la cuenta." />
-        <KPI label="Búsquedas de dirección" valor="63" pct={31.3}
-          que="Cuántas veces alguien tocó la dirección física para abrir el mapa de navegación."
-          implica="63 personas buscaron cómo llegar — turistas planeando una visita. Un +31% confirma intención de visita presencial." />
-        <KPI label="Actividad total perfil" valor="4.248" pct={26.4}
-          que="Suma de todas las acciones sobre el perfil: visitas, toques al enlace, a la dirección y llamadas."
-          implica="4.248 acciones con +26% de crecimiento. El perfil está atrayendo tráfico con clara intención de contacto." />
+    </div>
+    <div class="card">
+      <div class="kpi-label">Toques al enlace de la bio</div>
+      <div class="kpi-value">265</div>
+      <span class="kpi-badge badge-green">+42,5%</span>
+      <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="nota" style="display:none">
+        <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Cuántas personas tocaron el enlace que está en la bio del perfil. No se sabe a dónde lleva ese enlace — puede ser el sitio web, un sistema de reservas, WhatsApp u otro destino.</div></div>
+        <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">265 personas tocaron el enlace de la bio, con un crecimiento del +42,5%. Es el indicador de mayor intención de contacto, pero para saber si se convierte en reservas hay que verificar a dónde lleva ese enlace y si el destino facilita la acción.</div></div>
       </div>
-
-      <Seccion titulo="Crecimiento · 90 días (Mar – Jun)" />
-      <Card>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
-          {[
-            { label: "Nuevos seguidores", valor: "1.304", color: P.verdeOsc, bg: P.verdePale },
-            { label: "Dejaron de seguir", valor: "471",   color: P.rojoOsc,  bg: P.rojoPale  },
-            { label: "Crecimiento neto",  valor: "+833",  color: P.acento,   bg: P.azulPale  },
-          ].map(k => (
-            <div key={k.label} style={{
-              background: k.bg, borderRadius: 8, padding: "14px 8px", textAlign: "center"
-            }}>
-              <div style={{
-                color: k.color, fontWeight: 700, fontSize: "1.4rem", fontFamily: "Georgia, serif"
-              }}>{k.valor}</div>
-              <div style={{ color: P.texto, fontSize: "0.72rem", marginTop: 5, lineHeight: 1.4 }}>{k.label}</div>
-            </div>
-          ))}
-        </div>
-        <Plegable
-          que="En 90 días, 1.304 personas decidieron seguir la cuenta y 471 dejaron de hacerlo. La diferencia real es +833 nuevos seguidores en el trimestre."
-          implica="Una tasa de abandono del 36% es normal en el sector hotelero. El +4,7% trimestral es un ritmo de crecimiento estable y sostenido." />
-      </Card>
-
-      <Seccion titulo="Tasa de Engagement" />
-      <Card>
-        <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 16, flexWrap: "wrap" }}>
-          <div>
-            <div style={{
-              color: P.acento, fontSize: "3rem", fontWeight: 700,
-              lineHeight: 1, fontFamily: "Georgia, serif"
-            }}>{eng}%</div>
-            <div style={{ color: P.suave, fontSize: "0.8rem", marginTop: 5 }}>Promedio mensual estimado</div>
-          </div>
-          <div style={{
-            background: P.verdePale, border: `1px solid #a8d4b8`,
-            borderRadius: 8, padding: "10px 16px"
-          }}>
-            <div style={{ color: P.verdeOsc, fontWeight: 700, fontSize: "0.88rem" }}>Por encima del promedio</div>
-            <div style={{ color: "#2d6b44", fontSize: "0.78rem", marginTop: 2 }}>Sector hotelero: 0,5% – 1,5%</div>
-          </div>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {[
-            { label: "Likes",       valor: "830", desc: "Me gusta en Reels"   },
-            { label: "Comentarios", valor: "25",  desc: "Respuestas escritas" },
-            { label: "Guardados",   valor: "99",  desc: "Posts guardados"     },
-            { label: "Compartidos", valor: "114", desc: "Enviado a terceros"  },
-          ].map(k => (
-            <div key={k.label} style={{
-              background: P.bg, border: `1px solid ${P.bordeClaro}`,
-              borderRadius: 8, padding: "12px 10px"
-            }}>
-              <div style={{
-                color: P.titulo, fontWeight: 700, fontSize: "1.3rem", fontFamily: "Georgia, serif"
-              }}>{k.valor}</div>
-              <div style={{ color: P.acento, fontSize: "0.8rem", fontWeight: 600, marginTop: 2 }}>{k.label}</div>
-              <div style={{ color: P.suave, fontSize: "0.72rem", marginTop: 2 }}>{k.desc}</div>
-            </div>
-          ))}
-        </div>
-        <Plegable
-          que="Porcentaje de seguidores que interactúa activamente con el contenido. Se calcula dividiendo las interacciones totales por el número de seguidores."
-          implica={`Con ${eng}% Domus Mare supera el promedio del sector hotelero. Los guardados (99) y compartidos (114) son los indicadores de mayor valor, ya que reflejan contenido que la audiencia considera útil o inspirador.`} />
-      </Card>
-    </>)}
-
-    {/* ══════════════ AUDIENCIA ══════════════ */}
-    {tab === "Audiencia" && (<>
-
-      <Seccion titulo="Género de los Seguidores" />
-      <Torta titulo="Quiénes siguen la cuenta"
-        datos={[
-          { name: "Mujeres", value: 68.1, color: P.acento },
-          { name: "Hombres", value: 31.9, color: "#8ab4d8" },
-        ]}
-        que="Distribución por género de las personas que siguen activamente la cuenta."
-        implica="Las mujeres son el 68,1% de los seguidores y la principal tomadora de decisiones en reservas, escapadas en pareja y celebraciones. El contenido debe dirigirse a una mujer adulta de 35 a 54 años." />
-
-      <Torta titulo="Quiénes ven el contenido (incluye no seguidores)"
-        datos={[
-          { name: "Mujeres", value: 58.6, color: P.acento },
-          { name: "Hombres", value: 41.4, color: "#8ab4d8" },
-        ]}
-        que="Género de todas las personas que vieron el contenido, incluyendo quienes llegaron por anuncios y no siguen la cuenta."
-        implica="Los hombres tienen mayor presencia entre quienes ven el contenido (41,4%) versus quienes siguen la cuenta (31,9%). Los anuncios están llegando a una audiencia más equilibrada en género." />
-
-      <Seccion titulo="Edad de los Seguidores" />
-      <BarrasH titulo="Distribución por rango etario"
-        datos={[
-          { rango: "13 – 17 años", pct: 0.0 },
-          { rango: "18 – 24 años", pct: 1.6 },
-          { rango: "25 – 34 años", pct: 16.3 },
-          { rango: "35 – 44 años", pct: 35.0 },
-          { rango: "45 – 54 años", pct: 27.6 },
-          { rango: "55 – 64 años", pct: 13.0 },
-          { rango: "65+ años",     pct: 6.4  },
-        ]}
-        labelKey="rango" valueKey="pct"
-        palette={["#dce8f0","#c0d4e4","#8ab4d0","#4078a8","#1a3a5c","#152e4a","#0e2038"]}
-        que="Distribución porcentual de los seguidores según su rango etario."
-        implica="El 62,6% tiene entre 35 y 54 años — adultos con capacidad de gasto que priorizan la experiencia. El grupo principal es 35–44 años (35%), seguido de 45–54 (27,6%). Solo el 1,6% tiene entre 18 y 24 años." />
-
-      <BarrasH titulo="Edad del público que ve el contenido (incluyendo anuncios)"
-        datos={[
-          { rango: "25 – 34 años", pct: 21.4 },
-          { rango: "35 – 44 años", pct: 23.7 },
-          { rango: "45 – 54 años", pct: 18.4 },
-          { rango: "55 – 64 años", pct: 13.5 },
-        ]}
-        labelKey="rango" valueKey="pct"
-        palette={["#b8973a","#a07c28","#7a5c10","#5c4008"]}
-        que="Edad de todas las personas que vieron el contenido, incluyendo no seguidores que llegaron por anuncios."
-        implica="El grupo 35–44 lidera (23,7%), seguido de 25–34 (21,4%). Los anuncios captan bien al público objetivo y también al segmento más joven con potencial de fidelización." />
-
-      <Seccion titulo="Ubicación Geográfica" />
-      <BarrasH titulo="Ciudades de procedencia — nuevos seguidores"
-        datos={[
-          { ciudad: "Santiago de Chile", pct: 83.4 },
-          { ciudad: "Rancagua",          pct: 1.1  },
-          { ciudad: "Concepción",         pct: 0.8  },
-          { ciudad: "Colina",             pct: 0.7  },
-          { ciudad: "Curicó",             pct: 0.6  },
-        ]}
-        labelKey="ciudad" valueKey="pct"
-        palette={["#1a3a5c","#2d5986","#4078a8","#6096c0","#8ab4d8"]}
-        que="De qué ciudades son las personas que comenzaron a seguir la cuenta durante el período analizado."
-        implica="El 83,4% de nuevos seguidores proviene de Santiago. La audiencia es el turista de fin de semana santiaguino que busca una experiencia de calidad en Viña del Mar." />
-
-      <BarrasH titulo="Países — distribución de visualizaciones"
-        datos={[
-          { pais: "Chile",          pct: 99.6 },
-          { pais: "Argentina",      pct: 0.1  },
-          { pais: "España",         pct: 0.1  },
-          { pais: "Estados Unidos", pct: 0.1  },
-        ]}
-        labelKey="pais" valueKey="pct"
-        palette={["#1a4731","#2d6b44","#4a9660","#7ac08a"]}
-        que="Distribución por país de todas las personas que vieron algún contenido de la cuenta."
-        implica="El 99,6% del alcance es Chile. La estrategia es completamente local, coherente con el perfil de un hotel boutique de turismo interno." />
-
-      <Seccion titulo="Horarios de Mayor Actividad" />
-      <BarrasV titulo="Nivel de actividad de los seguidores por hora del día"
-        datos={[
-          { hora: "0h",  val: 45 }, { hora: "3h",  val: 15 },
-          { hora: "6h",  val: 30 }, { hora: "9h",  val: 55 },
-          { hora: "12h", val: 68 }, { hora: "15h", val: 88 },
-          { hora: "18h", val: 100}, { hora: "21h", val: 82 },
-        ]}
-        que="Muestra en qué horas del día los seguidores están más activos en Instagram, basado en el comportamiento real de la audiencia."
-        implica="La actividad máxima se concentra entre las 15:00 y las 21:00 hrs. Se recomienda publicar entre las 12:00 y las 14:00 para que el algoritmo distribuya el contenido justo cuando el tráfico es mayor." />
-
-    </>)}
-
-    {/* ══════════════ CONTENIDO ══════════════ */}
-    {tab === "Contenido" && (<>
-
-      <Seccion titulo="Origen del Alcance · 30 días" />
-      <Torta titulo="Distribución del alcance por tipo de audiencia"
-        datos={[
-          { name: "Personas nuevas (no seguidores)", value: 70.8, color: P.acento },
-          { name: "Seguidores actuales",             value: 29.2, color: "#8ab4d8" },
-        ]}
-        que="Qué proporción del alcance provino de personas que no siguen la cuenta versus personas que ya la siguen."
-        implica="El 70,8% del contenido fue visto por personas que no siguen la cuenta. Indica buen nivel de descubrimiento, aunque gran parte proviene de anuncios pagados." />
-
-      <Seccion titulo="Rendimiento por Formato" />
-      <BarrasH titulo="Visualizaciones por tipo de contenido · 30 días"
-        datos={[
-          { formato: "Publicaciones (fotos)", pct: 54.5 },
-          { formato: "Reels (videos)",        pct: 31.9 },
-          { formato: "Historias (Stories)",   pct: 13.5 },
-        ]}
-        labelKey="formato" valueKey="pct"
-        palette={[P.acento, P.dorado, P.suave]}
-        que="Qué tipo de contenido acumuló más visualizaciones durante el período."
-        implica="Las fotos generan más vistas (54,5%), pero con menor tasa de interacción. Los Reels tienen menos alcance pero generan más respuesta activa." />
-
-      <BarrasH titulo="Interacciones por tipo de contenido · 90 días"
-        datos={[
-          { formato: "Reels (videos)",        pct: 52.7 },
-          { formato: "Publicaciones (fotos)", pct: 35.1 },
-          { formato: "Historias (Stories)",   pct: 12.2 },
-        ]}
-        labelKey="formato" valueKey="pct"
-        palette={[P.dorado, P.acento, P.suave]}
-        que="En qué formato la audiencia interactuó más: likes, comentarios, guardados y compartidos."
-        implica="Los Reels lideran en interacciones (52,7%) siendo el formato más eficiente para generar comunidad activa. Se recomienda aumentar su frecuencia de publicación." />
-
-      <Seccion titulo="Contenido Más Visto · Mayo 2026" />
-      {[
-        { pos: "01", titulo: "Cortesía Armada Chile",  fecha: "21 de mayo", vistas: "20.000" },
-        { pos: "02", titulo: "Día de la Madre",        fecha: "5 de mayo",  vistas: "17.000" },
-        { pos: "03", titulo: "Terraza vista al mar",   fecha: "24 de mayo", vistas: "11.000" },
-        { pos: "04", titulo: "Cóctel margarita",       fecha: "7 de mayo",  vistas: "6.600"  },
-      ].map(c => (
-        <Card key={c.titulo} style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-            <div style={{ color: P.dorado, fontSize: "1.1rem", fontWeight: 700, fontFamily: "Georgia, serif", minWidth: 26 }}>{c.pos}</div>
-            <div>
-              <div style={{ color: P.titulo, fontWeight: 600, fontSize: "0.92rem" }}>{c.titulo}</div>
-              <div style={{ color: P.suave, fontSize: "0.78rem", marginTop: 3 }}>{c.fecha}</div>
-            </div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ color: P.acento, fontWeight: 700, fontSize: "1.15rem", fontFamily: "Georgia, serif" }}>{c.vistas}</div>
-            <div style={{ color: P.suave, fontSize: "0.7rem" }}>visualizaciones</div>
-          </div>
-        </Card>
-      ))}
-      <Card style={{ background: P.doradoClaro, border: `1px solid #d4ba6a`, marginBottom: 12 }}>
-        <div style={{ color: "#7a5c10", fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 6 }}>Patrón Identificado</div>
-        <div style={{ color: P.subtitulo, fontSize: "0.88rem", lineHeight: 1.75 }}>
-          El contenido vinculado a fechas relevantes o beneficios concretos genera en promedio 3 veces más visualizaciones que el contenido genérico de ambiente o producto.
-        </div>
-      </Card>
-
-      <Seccion titulo="Reels con Mayor Interacción · 90 días" />
-      {[
-        { pos: "01", fecha: "22 de marzo", likes: 93 },
-        { pos: "02", fecha: "12 de abril", likes: 84 },
-        { pos: "03", fecha: "30 de abril", likes: 72 },
-        { pos: "04", fecha: "15 de marzo", likes: 59 },
-      ].map(r => (
-        <Card key={r.fecha} style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-            <div style={{ color: P.dorado, fontSize: "1.1rem", fontWeight: 700, fontFamily: "Georgia, serif" }}>{r.pos}</div>
-            <span style={{ color: P.subtitulo, fontSize: "0.9rem" }}>Reel publicado el {r.fecha}</span>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ color: P.acento, fontWeight: 700, fontSize: "1.1rem", fontFamily: "Georgia, serif" }}>{r.likes}</div>
-            <div style={{ color: P.suave, fontSize: "0.7rem" }}>likes</div>
-          </div>
-        </Card>
-      ))}
-      <Plegable
-        que="Los Reels con mayor número de likes del período de 90 días, ordenados de mayor a menor."
-        implica="Se recomienda analizar el estilo de los Reels de marzo y abril para identificar los elementos que generaron mayor respuesta y replicar esa línea editorial." />
-
-    </>)}
-
-    {/* ══════════════ ANUNCIOS ══════════════ */}
-    {tab === "Anuncios" && (<>
-      <Card style={{ background: "#fff8ee", border: `1px solid #e8c87a`, marginTop: 16, marginBottom: 4 }}>
-        <div style={{ color: "#7a5c10", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>Dato Relevante</div>
-        <p style={{ color: P.subtitulo, fontSize: "0.88rem", margin: 0, lineHeight: 1.7 }}>
-          El <strong>66,6% del alcance total</strong> proviene de publicaciones pautadas. El alcance orgánico representa únicamente el <strong>33,4%</strong>.
-        </p>
-      </Card>
-
-      <Seccion titulo="Rendimiento de Anuncios · 90 días" />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <KPI label="Visualizaciones" valor="186.439"
-          que="Cuántas veces fueron vistas las publicaciones pautadas. Incluye repeticiones del mismo usuario."
-          implica="186 mil visualizaciones pagadas en 90 días confirma una inversión activa en pauta." />
-        <KPI label="Personas alcanzadas" valor="78.288"
-          que="Cuentas únicas que vieron al menos un anuncio. No contabiliza repeticiones."
-          implica="78 mil personas únicas — más de 4 veces la base de seguidores (18.422)." />
-        <KPI label="Interacciones" valor="23.252"
-          que="Acciones realizadas sobre los anuncios: likes, comentarios, clics y guardados."
-          implica="23.252 interacciones indica que los anuncios están bien segmentados y conectan con el público objetivo." />
-        <KPI label="Clics al enlace" valor="3.958"
-          que="Cuántas veces alguien tocó el enlace dentro de un anuncio para ir al sitio web o reservas."
-          implica="3.958 clics representan tráfico altamente calificado con intención real de reservar." />
+    </div>
+    <div class="card">
+      <div class="kpi-label">Búsquedas de dirección</div>
+      <div class="kpi-value">63</div>
+      <span class="kpi-badge badge-green">+31,3%</span>
+      <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="nota" style="display:none">
+        <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Cuántas veces alguien tocó la dirección del hotel para abrir el mapa y ver cómo llegar.</div></div>
+        <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">63 personas ya están planeando visitar físicamente el hotel. Un +31% confirma que el contenido está atrayendo a turistas con intención real de visita.</div></div>
       </div>
-      <KPI label="Seguidores ganados mediante anuncios" valor="540" sub="64,8% del total de 833 netos en 90 días"
-        que="Cuántas personas empezaron a seguir la cuenta directamente como resultado de ver un anuncio."
-        implica="Sin inversión publicitaria, el crecimiento orgánico habría sido de solo 293 seguidores netos en 90 días." />
+    </div>
+    <div class="card">
+      <div class="kpi-label">Total acciones en el perfil</div>
+      <div class="kpi-value">4.248</div>
+      <span class="kpi-badge badge-green">+26,4%</span>
+      <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="nota" style="display:none">
+        <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">La suma de todas las acciones realizadas en el perfil: visitas, toques al enlace, búsquedas de dirección y llamadas.</div></div>
+        <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">4.248 acciones con +26% de crecimiento. El perfil está funcionando como un punto de contacto activo, no solo como una galería de fotos.</div></div>
+      </div>
+    </div>
+  </div>
 
-      <Seccion titulo="Anuncios con Mayor Alcance · 90 días" />
-      {[
-        { pos: "01", titulo: "Happy Hour en Caipirosha y Aperol Spritz", alcance: "13.373" },
-        { pos: "02", titulo: "Día de la Madre en Domus Mare",            alcance: "11.427" },
-        { pos: "03", titulo: "Tributo Camilo Sesto",                     alcance: "9.512"  },
-      ].map(a => (
-        <Card key={a.titulo} style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-            <div style={{ color: P.dorado, fontSize: "1.1rem", fontWeight: 700, fontFamily: "Georgia, serif" }}>{a.pos}</div>
-            <div style={{ color: P.titulo, fontWeight: 600, fontSize: "0.88rem", maxWidth: 180, lineHeight: 1.4 }}>{a.titulo}</div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ color: P.verdeOsc, fontWeight: 700, fontSize: "1.1rem", fontFamily: "Georgia, serif" }}>{a.alcance}</div>
-            <div style={{ color: P.suave, fontSize: "0.7rem" }}>personas</div>
-          </div>
-        </Card>
-      ))}
-      <Plegable
-        que="Los tres anuncios que llegaron a más personas únicas en el período de 90 días."
-        implica="Las ofertas directas y las fechas especiales superan consistentemente al contenido de imagen de marca. El Tributo Camilo Sesto funciona bien para el perfil etario de 35 a 54 años." />
+  <!-- 4. CRECIMIENTO 90 DÍAS -->
+  <div class="seccion"><div class="seccion-bar"></div><h2>Crecimiento · últimos 90 días</h2></div>
+  <div style="background:#e8f0f7;border-radius:10px;padding:12px 14px;margin-bottom:12px;border-left:3px solid #1a3a5c">
+    <div style="color:#1a3a5c;font-size:.78rem;font-weight:600;line-height:1.65">Ver los últimos 90 días (marzo a junio) permite entender si la cuenta crece de forma sostenida, no solo si tuvo un buen mes puntual.</div>
+  </div>
+  <div class="card">
+    <div class="growth-grid">
+      <div class="growth-cell" style="background:#d4edda">
+        <div class="growth-val" style="color:#1a4731">1.304</div>
+        <div class="growth-lab" style="color:#4a5568">Nuevos seguidores</div>
+      </div>
+      <div class="growth-cell" style="background:#fde8e8">
+        <div class="growth-val" style="color:#7f1d1d">471</div>
+        <div class="growth-lab" style="color:#4a5568">Dejaron de seguir</div>
+      </div>
+      <div class="growth-cell" style="background:#e8f0f7">
+        <div class="growth-val" style="color:#1a3a5c">+833</div>
+        <div class="growth-lab" style="color:#4a5568">Crecimiento neto</div>
+      </div>
+    </div>
+    <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="nota" style="display:none">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">En 90 días llegaron 1.304 personas nuevas y se fueron 471. La diferencia real son +833 seguidores ganados en el trimestre.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">Que se vayan 471 personas en 3 meses es completamente normal — muchas siguen cuentas por un descuento o evento puntual. El crecimiento neto de +833 representa un +4,7% trimestral, que es un ritmo estable y saludable para un hotel boutique.</div></div>
+    </div>
+  </div>
 
-      <Seccion titulo="Balance: Alcance Orgánico vs. Pagado" />
-      <Card>
-        {[
-          { label: "Alcance pagado (anuncios)",       pct: 66.6, color: P.dorado     },
-          { label: "Alcance orgánico (sin inversión)", pct: 33.4, color: P.verdeOsc  },
-        ].map(b => (
-          <div key={b.label} style={{ marginBottom: 18 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
-              <span style={{ color: P.subtitulo, fontWeight: 600, fontSize: "0.9rem" }}>{b.label}</span>
-              <span style={{ color: P.titulo, fontWeight: 800, fontSize: "1rem", fontFamily: "Georgia, serif" }}>{b.pct}%</span>
-            </div>
-            <div style={{ background: P.bordeClaro, borderRadius: 5, height: 18, overflow: "hidden" }}>
-              <div style={{ width: `${b.pct}%`, background: b.color, height: "100%", borderRadius: 5 }} />
-            </div>
-          </div>
-        ))}
-        <Plegable
-          que="Qué proporción del alcance total proviene de contenido pagado versus contenido distribuido sin inversión."
-          implica="Una dependencia del 66,6% en pauta implica que si se reduce la inversión, el alcance disminuiría a la mitad. El objetivo es incrementar el alcance orgánico al 50% con Reels y contenido colaborativo." />
-      </Card>
+  <!-- 5. ENGAGEMENT -->
+  <div class="seccion"><div class="seccion-bar"></div><h2>¿La comunidad está activa?</h2></div>
+  <div style="background:#d4edda;border-radius:10px;padding:12px 14px;margin-bottom:12px;border-left:3px solid #1a4731">
+    <div style="color:#1a4731;font-size:.78rem;font-weight:600;line-height:1.65">El engagement mide si las personas que ven el contenido hacen algo con él, o simplemente lo ignoran. Un número alto indica que la comunidad confía en la marca.</div>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+      <div>
+        <div style="color:#1a3a5c;font-size:3rem;font-weight:700;line-height:1">0,57%</div>
+        <div style="color:#8a9bb0;font-size:.78rem;margin-top:5px;font-family:sans-serif">Tasa de engagement mensual</div>
+      </div>
+      <div style="background:#d4edda;border:1px solid #a8d4b8;border-radius:8px;padding:10px 14px;flex:1;min-width:120px">
+        <div style="color:#1a4731;font-weight:700;font-size:.88rem">✓ Por encima del promedio</div>
+        <div style="color:#2d6b44;font-size:.78rem;margin-top:4px;font-family:sans-serif">El sector hotelero promedia entre 0,5% y 1,5%. Domus Mare está dentro del rango positivo.</div>
+      </div>
+    </div>
+    <div class="eng-grid">
+      <div class="eng-cell"><div class="eng-val">830</div><div class="eng-name">Likes</div><div class="eng-desc">Me gusta recibidos</div></div>
+      <div class="eng-cell"><div class="eng-val">25</div><div class="eng-name">Comentarios</div><div class="eng-desc">Respuestas escritas</div></div>
+      <div class="eng-cell"><div class="eng-val">99</div><div class="eng-name">Guardados</div><div class="eng-desc">Contenido que guardaron para volver a ver</div></div>
+      <div class="eng-cell"><div class="eng-val">114</div><div class="eng-name">Compartidos</div><div class="eng-desc">Lo enviaron a otras personas</div></div>
+    </div>
+    <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="nota" style="display:none">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">El porcentaje de seguidores que interactúa activamente con el contenido. Se calcula dividiendo el total de interacciones por el número de seguidores.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">Los guardados (99) y los compartidos (114) son los dos indicadores de mayor valor, porque significan que la audiencia considera el contenido suficientemente bueno para guardarlo o recomendarlo a otros. Eso es confianza.</div></div>
+    </div>
+  </div>
 
-    </>)}
+  <!-- 6. CONCLUSIÓN -->
+  <div class="seccion"><div class="seccion-bar"></div><h2>Conclusión y próximos pasos</h2></div>
 
-    {/* ══════════════ ESTRATEGIA ══════════════ */}
-    {tab === "Estrategia" && (<>
+  <div style="background:#1a3a5c;border-radius:12px;padding:20px 16px;margin-bottom:12px">
+    <div style="color:#b8973a;font-size:.68rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;margin-bottom:12px;font-family:sans-serif">Lo que dicen los datos</div>
+    <div style="color:#ffffff;font-size:.92rem;line-height:1.85;margin-bottom:14px">
+      Domus Mare tiene una base sólida: <strong style="color:#f5eac8">18.422 seguidores reales</strong>, crecimiento sostenido del +4,7% trimestral y una audiencia muy bien definida. Los números de actividad del perfil — especialmente los 265 toques al enlace de la bio con un +42,5% — muestran que Instagram <strong style="color:#f5eac8">está generando intención de contacto</strong>, no solo visibilidad.
+    </div>
+    <div style="color:#8ab4d8;font-size:.86rem;line-height:1.75">
+      El desafío central es que el <strong style="color:#ffffff">66,6% del alcance depende de pauta pagada</strong>. Si mañana se reduce el presupuesto de anuncios, la visibilidad cae a la mitad. La cuenta necesita construir más músculo orgánico.
+    </div>
+  </div>
 
-      <Seccion titulo="Perfil de la Audiencia" />
-      <Card>
-        <div style={{ color: P.suave, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 14 }}>
-          Caracterización del seguidor promedio — basada en datos reales
-        </div>
-        {[
-          { label: "Género",           valor: "Mujer (68,1%)",        detalle: "Principal tomadora de decisiones en reservas y celebraciones" },
-          { label: "Edad",             valor: "35 – 54 años (62,6%)", detalle: "Adulta con experiencia y capacidad de gasto" },
-          { label: "Ciudad de origen", valor: "Santiago (83,4%)",     detalle: "Busca experiencias de calidad en Viña del Mar los fines de semana" },
-          { label: "País",             valor: "Chile (99,6%)",         detalle: "Audiencia completamente local, turismo interno" },
-          { label: "Horario activo",   valor: "15:00 – 21:00 hrs",    detalle: "Tarde y noche, mayor actividad los domingos" },
-        ].map((item, i) => (
-          <div key={item.label} style={{
-            padding: "12px 0",
-            borderBottom: i < 4 ? `1px solid ${P.bordeClaro}` : "none"
-          }}>
-            <div style={{ color: P.suave, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>{item.label}</div>
-            <div style={{ color: P.titulo, fontSize: "0.98rem", fontWeight: 700, marginTop: 3, fontFamily: "Georgia, serif" }}>{item.valor}</div>
-            <div style={{ color: P.texto, fontSize: "0.82rem", marginTop: 3 }}>{item.detalle}</div>
-          </div>
-        ))}
-      </Card>
+  <div style="color:#2d3748;font-size:.88rem;font-weight:700;margin:18px 0 10px;letter-spacing:.02em">Las 3 acciones más importantes ahora mismo:</div>
 
-      <Seccion titulo="Recomendaciones" />
-      {[
-        { nivel: "Urgente",        color: P.rojoOsc, bg: P.rojoPale, borde: "#f5a0a0",
-          titulo: "Ajustar el horario de publicación",
-          accion: "Publicar el contenido entre las 12:00 y las 14:00 horas.",
-          porque: "El pico de actividad de la audiencia ocurre entre las 15:00 y las 21:00 hrs. Publicar antes permite que el algoritmo distribuya el contenido justo cuando hay mayor tráfico." },
-        { nivel: "Alta Prioridad", color: "#7a3c00", bg: "#fff3e0", borde: "#f0b070",
-          titulo: "Desarrollar un calendario de fechas clave",
-          accion: "Mapear las fechas relevantes del año: 18 de Septiembre, Día del Padre, Navidad, San Valentín, entre otras.",
-          porque: "Cortesía Armada Chile (20.000 vistas) y Día de la Madre (17.000 vistas) superaron 3 veces el promedio. El contenido anclado a fechas reales genera alcance orgánico masivo." },
-        { nivel: "Alta Prioridad", color: "#7a3c00", bg: "#fff3e0", borde: "#f0b070",
-          titulo: "Verificar el destino del enlace en la bio",
-          accion: "Confirmar que el link en la bio lleve directamente a la página de reservas.",
-          porque: "265 personas tocaron ese enlace en 30 días (+42,5%). Cada paso adicional entre el clic y la reserva representa una oportunidad perdida." },
-        { nivel: "Media Prioridad",color: P.acento,  bg: P.azulPale,  borde: "#a8c4d8",
-          titulo: "Incrementar la producción de Reels",
-          accion: "Publicar entre 2 y 3 Reels semanales: terraza, cócteles, eventos y vista al mar.",
-          porque: "Los Reels generan el 52,7% de las interacciones siendo solo el 31,9% de las visualizaciones. Son el formato con mejor eficiencia en engagement." },
-        { nivel: "Media Prioridad",color: P.acento,  bg: P.azulPale,  borde: "#a8c4d8",
-          titulo: "Reducir la dependencia de pauta publicitaria",
-          accion: "Implementar Reels virales, colaboraciones y contenido generado por clientes para elevar el alcance orgánico al 50%.",
-          porque: "El 66,6% del alcance depende de inversión. Una reducción del presupuesto implicaría perder aproximadamente la mitad de la visibilidad." },
-      ].map(r => (
-        <Card key={r.titulo} style={{
-          marginBottom: 12, background: r.bg,
-          border: `1px solid ${r.borde}`, borderLeftWidth: 4, borderLeftColor: r.color
-        }}>
-          <div style={{ marginBottom: 8 }}>
-            <span style={{
-              color: r.color, fontSize: "0.68rem", fontWeight: 800,
-              letterSpacing: "0.1em", textTransform: "uppercase",
-              background: "rgba(255,255,255,0.7)", padding: "3px 10px", borderRadius: 4
-            }}>{r.nivel}</span>
-          </div>
-          <div style={{ color: P.titulo, fontWeight: 700, fontSize: "0.95rem", marginBottom: 10, fontFamily: "Georgia, serif" }}>{r.titulo}</div>
-          <div style={{ color: P.subtitulo, fontSize: "0.86rem", marginBottom: 8, lineHeight: 1.75 }}>
-            <strong style={{ color: P.texto }}>Acción:</strong> {r.accion}
-          </div>
-          <div style={{ color: P.texto, fontSize: "0.84rem", lineHeight: 1.75 }}>
-            <strong>Justificación:</strong> {r.porque}
-          </div>
-        </Card>
-      ))}
+  <div style="background:#fde8e8;border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:4px solid #7f1d1d">
+    <div style="color:#7f1d1d;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;font-family:sans-serif">① Urgente</div>
+    <div style="color:#1a1a2e;font-weight:700;font-size:.92rem;margin-bottom:5px">Cambiar el horario de publicación</div>
+    <div style="color:#4a5568;font-size:.84rem;line-height:1.7">Tu audiencia está activa entre las 15:00 y las 21:00. Si publicas a las 12:00–14:00, el contenido llega justo cuando hay más gente mirando. <strong>Hoy mismo puedes hacer este cambio.</strong></div>
+  </div>
 
-      <Seccion titulo="Indicadores a Monitorear Mensualmente" />
-      {[
-        { metrica: "Tasa de engagement",       actual: `${eng}%`,          meta: "Superar 1,5%",       desc: "Porcentaje de seguidores que interactúa. Indica si la comunidad está activa." },
-        { metrica: "Crecimiento neto mensual", actual: "+457 (mayo 2026)", meta: "+600 por mes",        desc: "Nuevos seguidores menos los que se retiran. Refleja la velocidad de crecimiento real." },
-        { metrica: "Alcance orgánico",          actual: "33,4% del total",  meta: "Alcanzar el 50%",    desc: "Porcentaje del alcance sin inversión. Refleja independencia del presupuesto publicitario." },
-        { metrica: "Clics al enlace externo",   actual: "265 por mes",      meta: "Superar 350 por mes", desc: "Personas que tocaron el link de reservas. El indicador más cercano a ingresos directos." },
-      ].map(m => (
-        <Card key={m.metrica} style={{ marginBottom: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
-            <span style={{ color: P.titulo, fontSize: "0.92rem", fontWeight: 700, fontFamily: "Georgia, serif" }}>{m.metrica}</span>
-            <span style={{ color: P.verdeOsc, fontSize: "0.82rem", fontWeight: 600, background: P.verdePale, padding: "3px 10px", borderRadius: 4 }}>Meta: {m.meta}</span>
-          </div>
-          <div style={{ color: P.texto, fontSize: "0.84rem", marginBottom: 5 }}>Valor actual: <strong>{m.actual}</strong></div>
-          <div style={{ color: P.suave, fontSize: "0.8rem", lineHeight: 1.6 }}>{m.desc}</div>
-        </Card>
-      ))}
+  <div style="background:#fff3e0;border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:4px solid #7a3c00">
+    <div style="color:#7a3c00;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;font-family:sans-serif">② Esta semana</div>
+    <div style="color:#1a1a2e;font-weight:700;font-size:.92rem;margin-bottom:5px">Verificar el enlace de la bio</div>
+    <div style="color:#4a5568;font-size:.84rem;line-height:1.7">265 personas tocaron ese enlace en un mes. Lo primero es saber a dónde lleva hoy: si va al sitio web general, a un menú de links, a WhatsApp o directo a reservas. Según eso, se evalúa si hay que cambiarlo o dejarlo. Cada paso innecesario entre el toque y la reserva es una oportunidad perdida.</div>
+  </div>
 
-      <Card style={{ background: P.azulPale, border: `1px solid #a8c4d8`, marginTop: 8 }}>
-        <div style={{ color: P.suave, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 10 }}>Conclusión</div>
-        <p style={{ color: P.subtitulo, fontSize: "0.9rem", lineHeight: 1.85, margin: 0 }}>
-          Domus Mare cuenta con una base consolidada de <strong style={{ color: P.titulo }}>18.422 seguidores</strong> con crecimiento estable del +4,7% trimestral, y una audiencia bien definida: <strong style={{ color: P.titulo }}>mujer adulta santiaguina de 35 a 54 años</strong>, con capacidad de gasto y disposición a vivir experiencias de calidad en Viña del Mar.<br /><br />
-          El desafío central es reducir la dependencia de pauta publicitaria (66,6% del alcance). La mayor oportunidad está en <strong style={{ color: P.acento }}>Reels de calidad, contenido editorial vinculado a fechas clave, y en optimizar el enlace de la bio para que conduzca directamente al sistema de reservas</strong>.
-        </p>
-      </Card>
+  <div style="background:#e8f0f7;border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:4px solid #1a3a5c">
+    <div style="color:#1a3a5c;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;font-family:sans-serif">③ Este mes</div>
+    <div style="color:#1a1a2e;font-weight:700;font-size:.92rem;margin-bottom:5px">Planificar contenido de fechas clave</div>
+    <div style="color:#4a5568;font-size:.84rem;line-height:1.7">Los posts de Cortesía Armada Chile (20.000 vistas) y Día de la Madre (17.000 vistas) triplicaron el promedio. El contenido vinculado a fechas reales es la palanca más poderosa que tiene la cuenta para crecer orgánicamente. <strong>18 de septiembre, Día del Padre, Fiestas Patrias, Navidad: mapear el calendario ya.</strong></div>
+  </div>
 
-    </>)}
+  <div style="background:#f5f4f0;border:1px solid #ddd9d0;border-radius:10px;padding:16px;margin-top:6px">
+    <div style="color:#8a9bb0;font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px;font-family:sans-serif">Metas para el próximo mes</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #ece9e2">
+        <span style="color:#2d3748;font-size:.86rem">Nuevos seguidores</span>
+        <span style="color:#1a3a5c;font-weight:700;font-size:.92rem">+600 <span style="color:#8a9bb0;font-weight:400;font-size:.78rem">(actual: +457)</span></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #ece9e2">
+        <span style="color:#2d3748;font-size:.86rem">Toques al enlace</span>
+        <span style="color:#1a3a5c;font-weight:700;font-size:.92rem">350 <span style="color:#8a9bb0;font-weight:400;font-size:.78rem">(actual: 265)</span></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #ece9e2">
+        <span style="color:#2d3748;font-size:.86rem">Alcance orgánico</span>
+        <span style="color:#1a3a5c;font-weight:700;font-size:.92rem">40% <span style="color:#8a9bb0;font-weight:400;font-size:.78rem">(actual: 33,4%)</span></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+        <span style="color:#2d3748;font-size:.86rem">Engagement</span>
+        <span style="color:#1a3a5c;font-weight:700;font-size:.92rem">0,8% <span style="color:#8a9bb0;font-weight:400;font-size:.78rem">(actual: 0,57%)</span></span>
+      </div>
+    </div>
+  </div>
 
-    <div style={{ marginTop: 36, color: P.suave, fontSize: "0.7rem", textAlign: "center", letterSpacing: "0.08em" }}>
-      Datos extraídos de Instagram Insights · Elaborado junio 2026
+</div>
+
+<!-- ═══ AUDIENCIA ═══ -->
+<div id="tab-audiencia" class="tab-panel">
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Género de los Seguidores</h2></div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="color:#1a1a2e;font-weight:700;font-size:.95rem;margin-bottom:18px">Quiénes siguen la cuenta</div>
+    <div class="gender-row">
+      <div class="gender-header">
+        <div><span class="gender-dot" style="background:#1a3a5c"></span><span class="gender-name">Mujeres</span></div>
+        <span class="gender-pct">68,1%</span>
+      </div>
+      <div class="gender-track"><div class="bar-fill" style="width:68.1%;background:#1a3a5c;height:100%"></div></div>
+    </div>
+    <div class="gender-row">
+      <div class="gender-header">
+        <div><span class="gender-dot" style="background:#8ab4d8"></span><span class="gender-name">Hombres</span></div>
+        <span class="gender-pct">31,9%</span>
+      </div>
+      <div class="gender-track"><div class="bar-fill" style="width:31.9%;background:#8ab4d8;height:100%"></div></div>
+    </div>
+    <div class="pie-center">
+      <svg width="120" height="120" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="40" fill="none" stroke="#1a3a5c" stroke-width="20" stroke-dasharray="171.2 251.3" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+        <circle cx="60" cy="60" r="40" fill="none" stroke="#8ab4d8" stroke-width="20" stroke-dasharray="80.2 251.3" stroke-dashoffset="-171.2" transform="rotate(-90 60 60)"/>
+        <circle cx="60" cy="60" r="28" fill="white"/>
+      </svg>
+    </div>
+    <div class="nota">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Distribución por género de las personas que siguen activamente la cuenta.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">Las mujeres son el 68,1% de los seguidores y la principal tomadora de decisiones en reservas, escapadas en pareja y celebraciones. El contenido debe dirigirse a una mujer adulta de 35 a 54 años.</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="color:#1a1a2e;font-weight:700;font-size:.95rem;margin-bottom:18px">Quiénes ven el contenido (incluye no seguidores)</div>
+    <div class="gender-row">
+      <div class="gender-header">
+        <div><span class="gender-dot" style="background:#1a3a5c"></span><span class="gender-name">Mujeres</span></div>
+        <span class="gender-pct">58,6%</span>
+      </div>
+      <div class="gender-track"><div class="bar-fill" style="width:58.6%;background:#1a3a5c;height:100%"></div></div>
+    </div>
+    <div class="gender-row">
+      <div class="gender-header">
+        <div><span class="gender-dot" style="background:#8ab4d8"></span><span class="gender-name">Hombres</span></div>
+        <span class="gender-pct">41,4%</span>
+      </div>
+      <div class="gender-track"><div class="bar-fill" style="width:41.4%;background:#8ab4d8;height:100%"></div></div>
+    </div>
+    <div class="nota">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Género de todas las personas que vieron el contenido, incluyendo quienes llegaron por anuncios y no siguen la cuenta.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">Los hombres tienen mayor presencia entre quienes ven el contenido (41,4%) versus quienes siguen la cuenta (31,9%). Los anuncios están llegando a una audiencia más equilibrada en género.</div></div>
+    </div>
+  </div>
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Edad de los Seguidores</h2></div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="color:#1a1a2e;font-weight:700;font-size:.95rem;margin-bottom:18px">Distribución por rango etario</div>
+    <div id="bars-edad"></div>
+    <div class="nota">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Distribución porcentual de los seguidores según su rango etario.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">El 62,6% tiene entre 35 y 54 años — adultos con capacidad de gasto que priorizan la experiencia. El grupo principal es 35–44 años (35%), seguido de 45–54 (27,6%). Solo el 1,6% tiene entre 18 y 24 años.</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="color:#1a1a2e;font-weight:700;font-size:.95rem;margin-bottom:18px">Edad del público que ve el contenido (incluyendo anuncios)</div>
+    <div id="bars-edad2"></div>
+    <div class="nota">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Edad de todas las personas que vieron el contenido, incluyendo no seguidores que llegaron por anuncios.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">El grupo 35–44 lidera (23,7%), seguido de 25–34 (21,4%). Los anuncios captan bien al público objetivo y también al segmento más joven con potencial de fidelización.</div></div>
+    </div>
+  </div>
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Ubicación Geográfica</h2></div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="color:#1a1a2e;font-weight:700;font-size:.95rem;margin-bottom:18px">Ciudades de procedencia — nuevos seguidores</div>
+    <div id="bars-ciudades"></div>
+    <div class="nota">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">De qué ciudades son las personas que comenzaron a seguir la cuenta durante el período analizado.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">El 83,4% de nuevos seguidores proviene de Santiago. La audiencia es el turista de fin de semana santiaguino que busca una experiencia de calidad en Viña del Mar.</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="color:#1a1a2e;font-weight:700;font-size:.95rem;margin-bottom:18px">Países — distribución de visualizaciones</div>
+    <div id="bars-paises"></div>
+    <div class="nota">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Distribución por país de todas las personas que vieron algún contenido de la cuenta.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">El 99,6% del alcance es Chile. La estrategia es completamente local, coherente con el perfil de un hotel boutique de turismo interno.</div></div>
+    </div>
+  </div>
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Horarios de Mayor Actividad</h2></div>
+  <div class="card" style="margin-bottom:16px">
+    <div style="color:#1a1a2e;font-weight:700;font-size:.95rem;margin-bottom:16px">Nivel de actividad de los seguidores por hora del día</div>
+    <div class="horas" id="horas-chart"></div>
+    <div style="text-align:center;margin-top:12px;background:#e8f0f7;border:1px solid #c8d9e8;border-radius:8px;padding:11px">
+      <span style="color:#1a3a5c;font-weight:600;font-size:.92rem">Mayor actividad: 15:00 – 21:00 hrs</span>
+    </div>
+    <div class="nota">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">En qué horas del día los seguidores están más activos en Instagram, basado en el comportamiento real de la audiencia.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">La actividad máxima se concentra entre las 15:00 y las 21:00 hrs. Se recomienda publicar entre las 12:00 y las 14:00 para que el algoritmo distribuya el contenido justo cuando el tráfico es mayor.</div></div>
     </div>
   </div>
 </div>
-```
 
-);
+<!-- ═══ CONTENIDO ═══ -->
+<div id="tab-contenido" class="tab-panel">
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Origen del Alcance · 30 días</h2></div>
+  <div class="card" style="margin-bottom:16px">
+    <div style="color:#1a1a2e;font-weight:700;font-size:.95rem;margin-bottom:18px">Distribución del alcance por tipo de audiencia</div>
+    <div class="gender-row">
+      <div class="gender-header">
+        <div><span class="gender-dot" style="background:#1a3a5c"></span><span class="gender-name">Personas nuevas (no seguidores)</span></div>
+        <span class="gender-pct">70,8%</span>
+      </div>
+      <div class="gender-track"><div class="bar-fill" style="width:70.8%;background:#1a3a5c;height:100%"></div></div>
+    </div>
+    <div class="gender-row">
+      <div class="gender-header">
+        <div><span class="gender-dot" style="background:#8ab4d8"></span><span class="gender-name">Seguidores actuales</span></div>
+        <span class="gender-pct">29,2%</span>
+      </div>
+      <div class="gender-track"><div class="bar-fill" style="width:29.2%;background:#8ab4d8;height:100%"></div></div>
+    </div>
+    <div class="nota">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Qué proporción del alcance provino de personas que no siguen la cuenta versus personas que ya la siguen.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">El 70,8% del contenido fue visto por personas que no siguen la cuenta. Indica buen nivel de descubrimiento, aunque gran parte proviene de anuncios pagados.</div></div>
+    </div>
+  </div>
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Rendimiento por Formato</h2></div>
+  <div class="card" style="margin-bottom:16px">
+    <div style="color:#1a1a2e;font-weight:700;font-size:.95rem;margin-bottom:18px">Visualizaciones por tipo de contenido · 30 días</div>
+    <div id="bars-formato1"></div>
+    <div class="nota">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Qué tipo de contenido acumuló más visualizaciones durante el período.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">Las fotos generan más vistas (54,5%), pero con menor tasa de interacción. Los Reels tienen menos alcance pero generan más respuesta activa.</div></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div style="color:#1a1a2e;font-weight:700;font-size:.95rem;margin-bottom:18px">Interacciones por tipo de contenido · 90 días</div>
+    <div id="bars-formato2"></div>
+    <div class="nota">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">En qué formato la audiencia interactuó más: likes, comentarios, guardados y compartidos.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">Los Reels lideran en interacciones (52,7%) siendo el formato más eficiente para generar comunidad activa. Se recomienda aumentar su frecuencia de publicación.</div></div>
+    </div>
+  </div>
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Contenido Más Visto · Mayo 2026</h2></div>
+  <div class="card top-row" style="margin-bottom:10px">
+    <div style="display:flex;gap:14px;align-items:center"><div class="top-num">01</div><div><div class="top-title">Cortesía Armada Chile</div><div class="top-date">21 de mayo</div></div></div>
+    <div style="text-align:right"><div class="top-val">20.000</div><div class="top-meta">visualizaciones</div></div>
+  </div>
+  <div class="card top-row" style="margin-bottom:10px">
+    <div style="display:flex;gap:14px;align-items:center"><div class="top-num">02</div><div><div class="top-title">Día de la Madre</div><div class="top-date">5 de mayo</div></div></div>
+    <div style="text-align:right"><div class="top-val">17.000</div><div class="top-meta">visualizaciones</div></div>
+  </div>
+  <div class="card top-row" style="margin-bottom:10px">
+    <div style="display:flex;gap:14px;align-items:center"><div class="top-num">03</div><div><div class="top-title">Terraza vista al mar</div><div class="top-date">24 de mayo</div></div></div>
+    <div style="text-align:right"><div class="top-val">11.000</div><div class="top-meta">visualizaciones</div></div>
+  </div>
+  <div class="card top-row" style="margin-bottom:10px">
+    <div style="display:flex;gap:14px;align-items:center"><div class="top-num">04</div><div><div class="top-title">Cóctel margarita</div><div class="top-date">7 de mayo</div></div></div>
+    <div style="text-align:right"><div class="top-val">6.600</div><div class="top-meta">visualizaciones</div></div>
+  </div>
+  <div class="patron"><div class="patron-title">Patrón Identificado</div><div class="patron-body">El contenido vinculado a fechas relevantes o beneficios concretos genera en promedio 3 veces más visualizaciones que el contenido genérico de ambiente o producto.</div></div>
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Reels con Mayor Interacción · 90 días</h2></div>
+  <div class="card top-row" style="margin-bottom:10px">
+    <div style="display:flex;gap:14px;align-items:center"><div class="top-num">01</div><span style="color:#2d3748;font-size:.9rem">Reel publicado el 22 de marzo</span></div>
+    <div style="text-align:right"><div class="top-val">93</div><div class="top-meta">likes</div></div>
+  </div>
+  <div class="card top-row" style="margin-bottom:10px">
+    <div style="display:flex;gap:14px;align-items:center"><div class="top-num">02</div><span style="color:#2d3748;font-size:.9rem">Reel publicado el 12 de abril</span></div>
+    <div style="text-align:right"><div class="top-val">84</div><div class="top-meta">likes</div></div>
+  </div>
+  <div class="card top-row" style="margin-bottom:10px">
+    <div style="display:flex;gap:14px;align-items:center"><div class="top-num">03</div><span style="color:#2d3748;font-size:.9rem">Reel publicado el 30 de abril</span></div>
+    <div style="text-align:right"><div class="top-val">72</div><div class="top-meta">likes</div></div>
+  </div>
+  <div class="card top-row" style="margin-bottom:10px">
+    <div style="display:flex;gap:14px;align-items:center"><div class="top-num">04</div><span style="color:#2d3748;font-size:.9rem">Reel publicado el 15 de marzo</span></div>
+    <div style="text-align:right"><div class="top-val">59</div><div class="top-meta">likes</div></div>
+  </div>
+  <div class="card">
+    <button class="plegable-btn" style="margin-top:0" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="nota" style="display:none">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Los Reels con mayor número de likes del período de 90 días, ordenados de mayor a menor.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">Se recomienda analizar el estilo de los Reels de marzo y abril para identificar los elementos que generaron mayor respuesta y replicar esa línea editorial.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ANUNCIOS ═══ -->
+<div id="tab-anuncios" class="tab-panel">
+  <div class="aviso">
+    <div class="aviso-title">Dato Relevante</div>
+    <div class="aviso-body">El <strong>66,6% del alcance total</strong> proviene de publicaciones pautadas. El alcance orgánico representa únicamente el <strong>33,4%</strong>.</div>
+  </div>
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Rendimiento de Anuncios · 90 días</h2></div>
+  <div class="kpi-grid">
+    <div class="card">
+      <div class="kpi-label">Visualizaciones</div>
+      <div class="kpi-value">186.439</div>
+      <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="nota" style="display:none">
+        <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Cuántas veces fueron vistas las publicaciones pautadas. Incluye repeticiones del mismo usuario.</div></div>
+        <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">186 mil visualizaciones pagadas en 90 días confirma una inversión activa en pauta.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kpi-label">Personas alcanzadas</div>
+      <div class="kpi-value">78.288</div>
+      <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="nota" style="display:none">
+        <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Cuentas únicas que vieron al menos un anuncio. No contabiliza repeticiones.</div></div>
+        <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">78 mil personas únicas — más de 4 veces la base de seguidores (18.422).</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kpi-label">Interacciones</div>
+      <div class="kpi-value">23.252</div>
+      <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="nota" style="display:none">
+        <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Acciones realizadas sobre los anuncios: likes, comentarios, clics y guardados.</div></div>
+        <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">23.252 interacciones indica que los anuncios están bien segmentados y conectan con el público objetivo.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kpi-label">Clics al enlace</div>
+      <div class="kpi-value">3.958</div>
+      <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="nota" style="display:none">
+        <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Cuántas veces alguien tocó el enlace dentro de un anuncio para ir al sitio web o reservas.</div></div>
+        <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">3.958 clics representan tráfico altamente calificado con intención real de reservar.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="kpi-label">Seguidores ganados mediante anuncios</div>
+    <div class="kpi-value">540</div>
+    <div class="kpi-sub">64,8% del total de 833 netos en 90 días</div>
+    <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="nota" style="display:none">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Cuántas personas empezaron a seguir la cuenta directamente como resultado de ver un anuncio.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">Sin inversión publicitaria, el crecimiento orgánico habría sido de solo 293 seguidores netos en 90 días.</div></div>
+    </div>
+  </div>
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Anuncios con Mayor Alcance · 90 días</h2></div>
+  <div class="card top-row" style="margin-bottom:10px">
+    <div style="display:flex;gap:14px;align-items:center"><div class="top-num">01</div><div style="color:#1a1a2e;font-weight:600;font-size:.88rem;max-width:180px;line-height:1.4">Happy Hour en Caipirosha y Aperol Spritz</div></div>
+    <div style="text-align:right"><div style="color:#1a4731;font-weight:700;font-size:1.1rem">13.373</div><div class="top-meta">personas</div></div>
+  </div>
+  <div class="card top-row" style="margin-bottom:10px">
+    <div style="display:flex;gap:14px;align-items:center"><div class="top-num">02</div><div style="color:#1a1a2e;font-weight:600;font-size:.88rem;max-width:180px;line-height:1.4">Día de la Madre en Domus Mare</div></div>
+    <div style="text-align:right"><div style="color:#1a4731;font-weight:700;font-size:1.1rem">11.427</div><div class="top-meta">personas</div></div>
+  </div>
+  <div class="card top-row" style="margin-bottom:10px">
+    <div style="display:flex;gap:14px;align-items:center"><div class="top-num">03</div><div style="color:#1a1a2e;font-weight:600;font-size:.88rem;max-width:180px;line-height:1.4">Tributo Camilo Sesto</div></div>
+    <div style="text-align:right"><div style="color:#1a4731;font-weight:700;font-size:1.1rem">9.512</div><div class="top-meta">personas</div></div>
+  </div>
+  <div class="card">
+    <button class="plegable-btn" style="margin-top:0" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="nota" style="display:none">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Los tres anuncios que llegaron a más personas únicas en el período de 90 días.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">Las ofertas directas y las fechas especiales superan consistentemente al contenido de imagen de marca. El Tributo Camilo Sesto funciona bien para el perfil etario de 35 a 54 años.</div></div>
+    </div>
+  </div>
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Balance: Alcance Orgánico vs. Pagado</h2></div>
+  <div class="card">
+    <div class="balance-row">
+      <div class="balance-header"><span class="balance-label">Alcance pagado (anuncios)</span><span class="balance-pct">66,6%</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:66.6%;background:#b8973a"></div></div>
+    </div>
+    <div class="balance-row">
+      <div class="balance-header"><span class="balance-label">Alcance orgánico (sin inversión)</span><span class="balance-pct">33,4%</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:33.4%;background:#1a4731"></div></div>
+    </div>
+    <button class="plegable-btn" onclick="toggleNota(this)"><span>¿Qué significa este número?</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="nota" style="display:none">
+      <div class="nota-que"><div class="nota-que-title">Qué mide</div><div class="nota-que-body">Qué proporción del alcance total proviene de contenido pagado versus contenido distribuido sin inversión.</div></div>
+      <div class="nota-imp"><div class="nota-imp-title">Lo que implica</div><div class="nota-imp-body">Una dependencia del 66,6% en pauta implica que si se reduce la inversión, el alcance disminuiría a la mitad. El objetivo es incrementar el alcance orgánico al 50% con Reels y contenido colaborativo.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ESTRATEGIA ═══ -->
+<div id="tab-estrategia" class="tab-panel">
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Perfil de la Audiencia</h2></div>
+  <div class="card">
+    <div style="color:#8a9bb0;font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px;font-family:sans-serif">Caracterización del seguidor promedio — basada en datos reales</div>
+    <div class="perfil-row"><div class="perfil-campo">Género</div><div class="perfil-valor">Mujer (68,1%)</div><div class="perfil-detalle">Principal tomadora de decisiones en reservas y celebraciones</div></div>
+    <div class="perfil-row"><div class="perfil-campo">Edad</div><div class="perfil-valor">35 – 54 años (62,6%)</div><div class="perfil-detalle">Adulta con experiencia y capacidad de gasto</div></div>
+    <div class="perfil-row"><div class="perfil-campo">Ciudad de origen</div><div class="perfil-valor">Santiago (83,4%)</div><div class="perfil-detalle">Busca experiencias de calidad en Viña del Mar los fines de semana</div></div>
+    <div class="perfil-row"><div class="perfil-campo">País</div><div class="perfil-valor">Chile (99,6%)</div><div class="perfil-detalle">Audiencia completamente local, turismo interno</div></div>
+    <div class="perfil-row"><div class="perfil-campo">Horario activo</div><div class="perfil-valor">15:00 – 21:00 hrs</div><div class="perfil-detalle">Tarde y noche, mayor actividad los domingos</div></div>
+  </div>
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Recomendaciones</h2></div>
+
+  <div class="rec-card" style="background:#fde8e8;border-color:#7f1d1d">
+    <div class="rec-nivel" style="color:#7f1d1d">Urgente</div>
+    <div class="rec-titulo">Ajustar el horario de publicación</div>
+    <div class="rec-accion"><strong>Acción:</strong> Publicar el contenido entre las 12:00 y las 14:00 horas.</div>
+    <div class="rec-porque"><strong>Justificación:</strong> La audiencia está más activa entre las 15:00 y las 21:00 hrs. Publicar antes permite que el algoritmo distribuya el contenido justo cuando hay mayor tráfico.</div>
+  </div>
+
+  <div class="rec-card" style="background:#fff3e0;border-color:#7a3c00">
+    <div class="rec-nivel" style="color:#7a3c00">Alta Prioridad</div>
+    <div class="rec-titulo">Desarrollar un calendario de fechas clave</div>
+    <div class="rec-accion"><strong>Acción:</strong> Mapear las fechas relevantes del año: 18 de Septiembre, Día del Padre, Navidad, San Valentín, entre otras.</div>
+    <div class="rec-porque"><strong>Justificación:</strong> Cortesía Armada Chile (20.000 vistas) y Día de la Madre (17.000 vistas) superaron 3 veces el promedio. El contenido anclado a fechas reales genera alcance orgánico masivo.</div>
+  </div>
+
+  <div class="rec-card" style="background:#fff3e0;border-color:#7a3c00">
+    <div class="rec-nivel" style="color:#7a3c00">Alta Prioridad</div>
+    <div class="rec-titulo">Verificar el destino del enlace en la bio</div>
+    <div class="rec-accion"><strong>Acción:</strong> Confirmar que el link en la bio lleve directamente a la página de reservas.</div>
+    <div class="rec-porque"><strong>Justificación:</strong> 265 personas tocaron ese enlace en 30 días (+42,5%). Cada paso adicional entre el clic y la reserva representa una oportunidad perdida.</div>
+  </div>
+
+  <div class="rec-card" style="background:#e8f0f7;border-color:#1a3a5c">
+    <div class="rec-nivel" style="color:#1a3a5c">Media Prioridad</div>
+    <div class="rec-titulo">Incrementar la producción de Reels</div>
+    <div class="rec-accion"><strong>Acción:</strong> Publicar entre 2 y 3 Reels semanales: terraza, cócteles, eventos y vista al mar.</div>
+    <div class="rec-porque"><strong>Justificación:</strong> Los Reels generan el 52,7% de las interacciones siendo solo el 31,9% de las visualizaciones. Son el formato con mejor eficiencia en engagement.</div>
+  </div>
+
+  <div class="rec-card" style="background:#e8f0f7;border-color:#1a3a5c">
+    <div class="rec-nivel" style="color:#1a3a5c">Media Prioridad</div>
+    <div class="rec-titulo">Reducir la dependencia de pauta publicitaria</div>
+    <div class="rec-accion"><strong>Acción:</strong> Implementar Reels virales, colaboraciones y contenido generado por clientes para elevar el alcance orgánico al 50%.</div>
+    <div class="rec-porque"><strong>Justificación:</strong> El 66,6% del alcance depende de inversión. Una reducción del presupuesto implicaría perder aproximadamente la mitad de la visibilidad.</div>
+  </div>
+
+  <div class="seccion"><div class="seccion-bar"></div><h2>Indicadores a Monitorear Mensualmente</h2></div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div class="metric-row"><span class="metric-name">Tasa de engagement</span><span class="metric-meta">Meta: Superar 1,5%</span></div>
+    <div class="metric-actual">Valor actual: <strong>0,57%</strong></div>
+    <div class="metric-desc">Porcentaje de seguidores que interactúa. Indica si la comunidad está activa.</div>
+  </div>
+  <div class="card" style="margin-bottom:10px">
+    <div class="metric-row"><span class="metric-name">Crecimiento neto mensual</span><span class="metric-meta">Meta: +600 por mes</span></div>
+    <div class="metric-actual">Valor actual: <strong>+457 (mayo 2026)</strong></div>
+    <div class="metric-desc">Nuevos seguidores menos los que se retiran. Refleja la velocidad de crecimiento real.</div>
+  </div>
+  <div class="card" style="margin-bottom:10px">
+    <div class="metric-row"><span class="metric-name">Alcance orgánico</span><span class="metric-meta">Meta: Alcanzar el 50%</span></div>
+    <div class="metric-actual">Valor actual: <strong>33,4% del total</strong></div>
+    <div class="metric-desc">Porcentaje del alcance sin inversión. Refleja independencia del presupuesto publicitario.</div>
+  </div>
+  <div class="card" style="margin-bottom:10px">
+    <div class="metric-row"><span class="metric-name">Toques al enlace de la bio</span><span class="metric-meta">Meta: Superar 350 por mes</span></div>
+    <div class="metric-actual">Valor actual: <strong>265 por mes</strong></div>
+    <div class="metric-desc">Personas que tocaron el enlace de la bio. Para saber si se convierte en ingresos, hay que verificar a dónde lleva ese enlace.</div>
+  </div>
+
+  <div class="conclusion">
+    <div class="conclusion-title">Conclusión</div>
+    <div class="conclusion-body">
+      Domus Mare cuenta con una base consolidada de <strong>18.422 seguidores</strong> con crecimiento estable del +4,7% trimestral, y una audiencia bien definida: <strong>mujer adulta santiaguina de 35 a 54 años</strong>, con capacidad de gasto y disposición a vivir experiencias de calidad en Viña del Mar.<br><br>
+      El desafío central es reducir la dependencia de pauta publicitaria (66,6% del alcance). La mayor oportunidad está en <strong style="color:#1a3a5c">Reels de calidad, contenido editorial vinculado a fechas clave, y en verificar y optimizar el enlace de la bio para que conduzca directamente al sistema de reservas</strong>.
+    </div>
+  </div>
+</div>
+
+<div class="footer-note">Datos extraídos de Instagram Insights · Elaborado junio 2026</div>
+</div>
+
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
 }
+
+function toggleNota(btn) {
+  var nota = btn.nextElementSibling;
+  var open = nota.style.display !== 'none';
+  nota.style.display = open ? 'none' : 'flex';
+  btn.classList.toggle('open', !open);
+  var span = btn.querySelector('span');
+  if (span) span.textContent = open ? '¿Qué significa este número?' : 'Ocultar explicación';
+}
+
+function barras(containerId, datos, labelKey, valueKey, colores) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  var max = Math.max.apply(null, datos.map(function(d){ return d[valueKey]; })) || 1;
+  var html = '';
+  datos.forEach(function(d, i) {
+    var w = (d[valueKey] / max * 100).toFixed(1);
+    var col = colores[i % colores.length];
+    html += '<div class="bar-row">' +
+      '<div class="bar-row-header"><span class="bar-label">' + d[labelKey] + '</span><span class="bar-val">' + d[valueKey] + '%</span></div>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' + w + '%;background:' + col + '"></div></div>' +
+      '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function horasChart() {
+  var datos = [
+    {h:'0h',v:45},{h:'3h',v:15},{h:'6h',v:30},{h:'9h',v:55},
+    {h:'12h',v:68},{h:'15h',v:88},{h:'18h',v:100},{h:'21h',v:82}
+  ];
+  var el = document.getElementById('horas-chart');
+  if (!el) return;
+  var html = '';
+  datos.forEach(function(d) {
+    var col = d.v >= 80 ? '#1a3a5c' : d.v >= 50 ? '#4078a8' : '#c8d9e8';
+    html += '<div class="hora-col">' +
+      '<div class="hora-bar-wrap"><div class="hora-bar" style="height:' + d.v + '%;background:' + col + '"></div></div>' +
+      '<div class="hora-label">' + d.h + '</div>' +
+      '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// Init charts
+barras('bars-edad',
+  [{rango:'13–17',pct:0},{rango:'18–24',pct:1.6},{rango:'25–34',pct:16.3},{rango:'35–44',pct:35},{rango:'45–54',pct:27.6},{rango:'55–64',pct:13},{rango:'65+',pct:6.4}],
+  'rango','pct',['#dce8f0','#c0d4e4','#8ab4d0','#4078a8','#1a3a5c','#152e4a','#0e2038']);
+
+barras('bars-edad2',
+  [{rango:'25–34',pct:21.4},{rango:'35–44',pct:23.7},{rango:'45–54',pct:18.4},{rango:'55–64',pct:13.5}],
+  'rango','pct',['#b8973a','#a07c28','#7a5c10','#5c4008']);
+
+barras('bars-ciudades',
+  [{ciudad:'Santiago de Chile',pct:83.4},{ciudad:'Rancagua',pct:1.1},{ciudad:'Concepción',pct:0.8},{ciudad:'Colina',pct:0.7},{ciudad:'Curicó',pct:0.6}],
+  'ciudad','pct',['#1a3a5c','#2d5986','#4078a8','#6096c0','#8ab4d8']);
+
+barras('bars-paises',
+  [{pais:'Chile',pct:99.6},{pais:'Argentina',pct:0.1},{pais:'España',pct:0.1},{pais:'EE.UU.',pct:0.1}],
+  'pais','pct',['#1a4731','#2d6b44','#4a9660','#7ac08a']);
+
+barras('bars-formato1',
+  [{formato:'Publicaciones (fotos)',pct:54.5},{formato:'Reels (videos)',pct:31.9},{formato:'Historias (Stories)',pct:13.5}],
+  'formato','pct',['#1a3a5c','#b8973a','#8a9bb0']);
+
+barras('bars-formato2',
+  [{formato:'Reels (videos)',pct:52.7},{formato:'Publicaciones (fotos)',pct:35.1},{formato:'Historias (Stories)',pct:12.2}],
+  'formato','pct',['#b8973a','#1a3a5c','#8a9bb0']);
+
+horasChart();
+</script>
+</body>
+</html>
