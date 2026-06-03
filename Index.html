@@ -1,0 +1,793 @@
+import { useState } from “react”;
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from “recharts”;
+
+const P = {
+bg:          “#f5f4f0”,
+card:        “#ffffff”,
+borde:       “#ddd9d0”,
+bordeClaro:  “#ece9e2”,
+titulo:      “#1a1a2e”,
+subtitulo:   “#2d3748”,
+texto:       “#4a5568”,
+suave:       “#8a9bb0”,
+acento:      “#1a3a5c”,
+dorado:      “#b8973a”,
+doradoClaro: “#f5eac8”,
+azulPale:    “#e8f0f7”,
+verdePale:   “#d4edda”,
+verdeOsc:    “#1a4731”,
+rojoPale:    “#fde8e8”,
+rojoOsc:     “#7f1d1d”,
+};
+
+// ── Tarjeta base ──────────────────────────────────────────────
+function Card({ children, style }) {
+return (
+<div style={{
+background: P.card, border: `1px solid ${P.borde}`, borderRadius: 12,
+padding: “18px 16px”, boxShadow: “0 2px 8px rgba(26,26,46,0.06)”, …style
+}}>
+{children}
+</div>
+);
+}
+
+// ── Nota explicativa siempre visible ─────────────────────────
+function Nota({ que, implica }) {
+return (
+<div style={{ marginTop: 14, display: “flex”, flexDirection: “column”, gap: 8 }}>
+<div style={{
+background: P.azulPale, borderLeft: `3px solid ${P.acento}`,
+borderRadius: 8, padding: “11px 14px”
+}}>
+<div style={{
+color: P.acento, fontSize: “0.7rem”, fontWeight: 800,
+letterSpacing: “0.14em”, textTransform: “uppercase”, marginBottom: 5
+}}>Qué mide</div>
+<div style={{ color: P.subtitulo, fontSize: “0.86rem”, lineHeight: 1.75 }}>{que}</div>
+</div>
+<div style={{
+background: P.doradoClaro, borderLeft: `3px solid ${P.dorado}`,
+borderRadius: 8, padding: “11px 14px”
+}}>
+<div style={{
+color: “#7a5c10”, fontSize: “0.7rem”, fontWeight: 800,
+letterSpacing: “0.14em”, textTransform: “uppercase”, marginBottom: 5
+}}>Lo que implica</div>
+<div style={{ color: P.subtitulo, fontSize: “0.86rem”, lineHeight: 1.75 }}>{implica}</div>
+</div>
+</div>
+);
+}
+
+// ── Explicación plegable (para secciones no-audiencia) ────────
+function Plegable({ que, implica }) {
+const [open, setOpen] = useState(false);
+return (
+<div style={{ marginTop: 12 }}>
+<button onClick={() => setOpen(o => !o)} style={{
+background: P.bg, border: `1px solid ${P.borde}`, borderRadius: 8,
+padding: “9px 14px”, color: P.acento, fontSize: “0.82rem”, fontWeight: 600,
+cursor: “pointer”, width: “100%”, textAlign: “left”, fontFamily: “Georgia, serif”,
+letterSpacing: “0.03em”
+}}>
+{open ? “— Ocultar explicación” : “+ ¿Qué significa este número?”}
+</button>
+{open && <Nota que={que} implica={implica} />}
+</div>
+);
+}
+
+// ── KPI ───────────────────────────────────────────────────────
+function KPI({ label, valor, sub, pct, pctPos = true, que, implica }) {
+return (
+<Card style={{ marginBottom: 12 }}>
+<div style={{
+color: P.suave, fontSize: “0.7rem”, fontWeight: 700,
+textTransform: “uppercase”, letterSpacing: “0.14em”, marginBottom: 8
+}}>{label}</div>
+<div style={{
+color: P.titulo, fontSize: “2.2rem”, fontWeight: 700,
+lineHeight: 1, fontFamily: “Georgia, serif”
+}}>{valor}</div>
+{sub && <div style={{ color: P.suave, fontSize: “0.8rem”, marginTop: 6 }}>{sub}</div>}
+{pct != null && (
+<div style={{ marginTop: 8 }}>
+<span style={{
+color: pctPos ? P.verdeOsc : P.rojoOsc, fontWeight: 600, fontSize: “0.85rem”,
+background: pctPos ? P.verdePale : P.rojoPale,
+padding: “3px 10px”, borderRadius: 4
+}}>
+{pctPos ? “+” : “–”}{pct}%
+</span>
+</div>
+)}
+{(que || implica) && <Plegable que={que} implica={implica} />}
+</Card>
+);
+}
+
+// ── Título de sección ─────────────────────────────────────────
+function Seccion({ titulo }) {
+return (
+<div style={{
+display: “flex”, alignItems: “center”, gap: 12,
+margin: “28px 0 14px”, paddingBottom: 10, borderBottom: `1px solid ${P.borde}`
+}}>
+<div style={{ width: 3, height: 20, background: P.dorado, borderRadius: 2, flexShrink: 0 }} />
+<h2 style={{
+color: P.titulo, fontSize: “0.8rem”, fontWeight: 700,
+letterSpacing: “0.16em”, textTransform: “uppercase”, margin: 0,
+fontFamily: “Georgia, serif”
+}}>{titulo}</h2>
+</div>
+);
+}
+
+// ── Gráfico de torta ──────────────────────────────────────────
+function Torta({ titulo, datos, que, implica }) {
+return (
+<Card style={{ marginBottom: 16 }}>
+<div style={{
+color: P.titulo, fontWeight: 700, fontSize: “0.95rem”,
+marginBottom: 18, fontFamily: “Georgia, serif”
+}}>{titulo}</div>
+
+```
+  {/* Barras de género grandes y claras */}
+  {datos.map((d, i) => (
+    <div key={d.name} style={{ marginBottom: 20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 12, height: 12, borderRadius: 2,
+            background: d.color, flexShrink: 0
+          }} />
+          <span style={{ color: P.subtitulo, fontSize: "1rem", fontWeight: 600 }}>{d.name}</span>
+        </div>
+        <span style={{
+          color: P.titulo, fontWeight: 800, fontSize: "1.4rem",
+          fontFamily: "Georgia, serif"
+        }}>{d.value}%</span>
+      </div>
+      <div style={{ background: P.bordeClaro, borderRadius: 6, height: 22, overflow: "hidden" }}>
+        <div style={{
+          width: `${d.value}%`, background: d.color,
+          height: "100%", borderRadius: 6
+        }} />
+      </div>
+    </div>
+  ))}
+
+  {/* Torta pequeña decorativa */}
+  <div style={{ display: "flex", justifyContent: "center", margin: "8px 0 4px" }}>
+    <PieChart width={120} height={120}>
+      <Pie data={datos} cx={60} cy={60} innerRadius={35} outerRadius={55}
+        dataKey="value" strokeWidth={2} stroke="#fff">
+        {datos.map((d, i) => <Cell key={i} fill={d.color} />)}
+      </Pie>
+    </PieChart>
+  </div>
+
+  <Nota que={que} implica={implica} />
+</Card>
+```
+
+);
+}
+
+// ── Barras horizontales ───────────────────────────────────────
+function BarrasH({ titulo, datos, labelKey, valueKey, palette, que, implica }) {
+const max = Math.max(…datos.map(d => d[valueKey])) || 1;
+const cols = palette || Array(10).fill(P.acento);
+return (
+<Card style={{ marginBottom: 16 }}>
+<div style={{
+color: P.titulo, fontWeight: 700, fontSize: “0.95rem”,
+marginBottom: 18, fontFamily: “Georgia, serif”
+}}>{titulo}</div>
+
+```
+  {datos.map((d, i) => (
+    <div key={i} style={{ marginBottom: 18 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
+        <span style={{ color: P.subtitulo, fontSize: "0.92rem", fontWeight: 500 }}>{d[labelKey]}</span>
+        <span style={{
+          color: P.titulo, fontWeight: 800, fontSize: "1.05rem",
+          fontFamily: "Georgia, serif"
+        }}>{d[valueKey]}%</span>
+      </div>
+      <div style={{ background: P.bordeClaro, borderRadius: 5, height: 16, overflow: "hidden" }}>
+        <div style={{
+          width: `${(d[valueKey] / max) * 100}%`,
+          background: cols[i % cols.length],
+          height: "100%", borderRadius: 5,
+          minWidth: d[valueKey] > 0 ? 4 : 0
+        }} />
+      </div>
+    </div>
+  ))}
+
+  <Nota que={que} implica={implica} />
+</Card>
+```
+
+);
+}
+
+// ── Barras verticales (horarios) ──────────────────────────────
+function BarrasV({ titulo, datos, que, implica }) {
+return (
+<Card style={{ marginBottom: 16 }}>
+<div style={{
+color: P.titulo, fontWeight: 700, fontSize: “0.95rem”,
+marginBottom: 16, fontFamily: “Georgia, serif”
+}}>{titulo}</div>
+
+```
+  <ResponsiveContainer width="100%" height={200}>
+    <BarChart data={datos} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+      <CartesianGrid strokeDasharray="3 3" stroke={P.bordeClaro} />
+      <XAxis dataKey="hora"
+        tick={{ fill: P.texto, fontSize: 13, fontFamily: "Georgia, serif" }}
+        axisLine={false} tickLine={false} />
+      <YAxis tick={{ fill: P.suave, fontSize: 11 }} axisLine={false} tickLine={false} />
+      <Tooltip
+        formatter={(v) => [v, "Nivel de actividad"]}
+        contentStyle={{
+          background: "#fff", border: `1px solid ${P.borde}`,
+          borderRadius: 8, fontSize: "0.88rem",
+          fontFamily: "Georgia, serif", color: P.titulo
+        }} />
+      <Bar dataKey="val" radius={[5, 5, 0, 0]}>
+        {datos.map((d, i) => (
+          <Cell key={i}
+            fill={d.val >= 80 ? P.acento : d.val >= 50 ? "#4078a8" : "#c8d9e8"} />
+        ))}
+      </Bar>
+    </BarChart>
+  </ResponsiveContainer>
+
+  <div style={{
+    textAlign: "center", marginTop: 12, background: P.azulPale,
+    border: `1px solid #c8d9e8`, borderRadius: 8, padding: "11px"
+  }}>
+    <span style={{
+      color: P.acento, fontWeight: 600, fontSize: "0.92rem",
+      fontFamily: "Georgia, serif"
+    }}>Pico de actividad: 15:00 – 21:00 hrs</span>
+  </div>
+
+  <Nota que={que} implica={implica} />
+</Card>
+```
+
+);
+}
+
+// ── TABS ──────────────────────────────────────────────────────
+const TABS = [“Resumen”, “Audiencia”, “Contenido”, “Anuncios”, “Estrategia”];
+
+export default function App() {
+const [tab, setTab] = useState(“Resumen”);
+const eng = ((3139 / 3 / 18422) * 100).toFixed(2);
+
+return (
+<div style={{ background: P.bg, minHeight: “100vh”, fontFamily: “Georgia, serif”, paddingBottom: 60 }}>
+
+```
+  {/* HEADER */}
+  <div style={{ background: P.acento, padding: "30px 20px 26px" }}>
+    <div style={{
+      color: "#8ab4d8", fontSize: "0.68rem", fontWeight: 700,
+      letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 10
+    }}>Informe de Desempeño · Instagram · Junio 2026</div>
+    <h1 style={{
+      color: "#ffffff", fontSize: "1.5rem", fontWeight: 400,
+      margin: "0 0 4px", letterSpacing: "0.04em"
+    }}>Hotel &amp; Restaurante</h1>
+    <h2 style={{
+      color: P.dorado, fontSize: "1.5rem", fontWeight: 700,
+      margin: "0 0 20px", letterSpacing: "0.06em"
+    }}>Domus Mare</h2>
+    <div style={{ height: 1, background: "rgba(184,151,58,0.35)", marginBottom: 20 }} />
+    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      {[
+        { label: "Seguidores",     valor: "18.422" },
+        { label: "Engagement",     valor: `${eng}%` },
+        { label: "Visualizaciones",valor: "146K"   },
+      ].map(k => (
+        <div key={k.label} style={{
+          flex: 1, minWidth: 88,
+          background: "rgba(255,255,255,0.07)",
+          border: "1px solid rgba(184,151,58,0.3)",
+          borderRadius: 8, padding: "12px 14px"
+        }}>
+          <div style={{
+            color: "#fff", fontSize: "1.45rem", fontWeight: 700, fontFamily: "Georgia, serif"
+          }}>{k.valor}</div>
+          <div style={{ color: "#8ab4d8", fontSize: "0.72rem", marginTop: 4 }}>{k.label}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  {/* NAVEGACIÓN */}
+  <div style={{ background: "#ffffff", borderBottom: `1px solid ${P.borde}`, padding: "14px 14px 14px" }}>
+    <div style={{ fontSize: "0.68rem", color: P.suave, fontWeight: 700,
+      letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 10 }}>
+      Seleccione una sección
+    </div>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+      {TABS.map(t => (
+        <button key={t} onClick={() => setTab(t)} style={{
+          padding: "12px 18px",
+          fontSize: "0.85rem",
+          fontWeight: 700,
+          fontFamily: "Georgia, serif",
+          letterSpacing: "0.04em",
+          cursor: "pointer",
+          borderRadius: 8,
+          border: tab === t ? `2px solid ${P.acento}` : `2px solid ${P.borde}`,
+          background: tab === t ? P.acento : "#f8f8f8",
+          color: tab === t ? "#ffffff" : P.subtitulo,
+          boxShadow: tab === t ? "0 2px 8px rgba(26,58,92,0.2)" : "none"
+        }}>{t}</button>
+      ))}
+    </div>
+  </div>
+
+  <div style={{ padding: "8px 14px", maxWidth: 680, margin: "0 auto" }}>
+
+    {/* ══════════════ RESUMEN ══════════════ */}
+    {tab === "Resumen" && (<>
+      <Seccion titulo="Alcance · Últimos 30 días" />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <KPI label="Visualizaciones" valor="146.076" sub="4 may – 2 jun"
+          que="Cuántas veces fue visto cualquier contenido en pantalla. Incluye repeticiones del mismo usuario."
+          implica="146 mil visualizaciones en un mes es un volumen alto para un hotel boutique. Incluye tanto contenido orgánico como anuncios pagados." />
+        <KPI label="Personas alcanzadas" valor="60.187" pct={28.1}
+          que="Número de cuentas únicas que vieron al menos una vez algún contenido. No repite a la misma persona."
+          implica="60 mil personas únicas con un +28% respecto al mes anterior. Este es el dato más representativo del alcance real." />
+        <KPI label="Nuevos seguidores" valor="+457" sub="607 entraron · 150 se fueron" pct={2.5}
+          que="Diferencia entre quienes comenzaron a seguir la cuenta y quienes dejaron de hacerlo en el período."
+          implica="Los 150 que se retiraron es un número normal y bajo. El crecimiento neto de +457 en un mes es saludable para esta categoría." />
+        <KPI label="Interacciones" valor="1.300" sub="likes, comentarios, guardados"
+          que="Suma de todas las acciones de los usuarios sobre el contenido: like, comentar, guardar, compartir o repostear."
+          implica="1.300 interacciones sobre 60 mil personas alcanzadas. Equivale a 1 de cada 46 personas alcanzadas, ratio normal para el sector hotelero." />
+      </div>
+
+      <Seccion titulo="Actividad del Perfil · Últimos 30 días" />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <KPI label="Visitas al perfil" valor="3.920" pct={25.4}
+          que="Cuántas veces alguien ingresó a ver la página completa del perfil: bio, publicaciones y enlace."
+          implica="+25% de crecimiento. El contenido está generando suficiente interés para que las personas visiten el perfil — paso previo a una reserva." />
+        <KPI label="Toques al enlace" valor="265" pct={42.5}
+          que="Cuántas veces alguien tocó el link en la bio del perfil para ir al sitio web o sistema de reservas."
+          implica="265 personas con intención real de reservar (+42,5%). Es el indicador más cercano a ingresos reales de toda la cuenta." />
+        <KPI label="Búsquedas de dirección" valor="63" pct={31.3}
+          que="Cuántas veces alguien tocó la dirección física para abrir el mapa de navegación."
+          implica="63 personas buscaron cómo llegar — turistas planeando una visita. Un +31% confirma intención de visita presencial." />
+        <KPI label="Actividad total perfil" valor="4.248" pct={26.4}
+          que="Suma de todas las acciones sobre el perfil: visitas, toques al enlace, a la dirección y llamadas."
+          implica="4.248 acciones con +26% de crecimiento. El perfil está atrayendo tráfico con clara intención de contacto." />
+      </div>
+
+      <Seccion titulo="Crecimiento · 90 días (Mar – Jun)" />
+      <Card>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
+          {[
+            { label: "Nuevos seguidores", valor: "1.304", color: P.verdeOsc, bg: P.verdePale },
+            { label: "Dejaron de seguir", valor: "471",   color: P.rojoOsc,  bg: P.rojoPale  },
+            { label: "Crecimiento neto",  valor: "+833",  color: P.acento,   bg: P.azulPale  },
+          ].map(k => (
+            <div key={k.label} style={{
+              background: k.bg, borderRadius: 8, padding: "14px 8px", textAlign: "center"
+            }}>
+              <div style={{
+                color: k.color, fontWeight: 700, fontSize: "1.4rem", fontFamily: "Georgia, serif"
+              }}>{k.valor}</div>
+              <div style={{ color: P.texto, fontSize: "0.72rem", marginTop: 5, lineHeight: 1.4 }}>{k.label}</div>
+            </div>
+          ))}
+        </div>
+        <Plegable
+          que="En 90 días, 1.304 personas decidieron seguir la cuenta y 471 dejaron de hacerlo. La diferencia real es +833 nuevos seguidores en el trimestre."
+          implica="Una tasa de abandono del 36% es normal en el sector hotelero. El +4,7% trimestral es un ritmo de crecimiento estable y sostenido." />
+      </Card>
+
+      <Seccion titulo="Tasa de Engagement" />
+      <Card>
+        <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 16, flexWrap: "wrap" }}>
+          <div>
+            <div style={{
+              color: P.acento, fontSize: "3rem", fontWeight: 700,
+              lineHeight: 1, fontFamily: "Georgia, serif"
+            }}>{eng}%</div>
+            <div style={{ color: P.suave, fontSize: "0.8rem", marginTop: 5 }}>Promedio mensual estimado</div>
+          </div>
+          <div style={{
+            background: P.verdePale, border: `1px solid #a8d4b8`,
+            borderRadius: 8, padding: "10px 16px"
+          }}>
+            <div style={{ color: P.verdeOsc, fontWeight: 700, fontSize: "0.88rem" }}>Por encima del promedio</div>
+            <div style={{ color: "#2d6b44", fontSize: "0.78rem", marginTop: 2 }}>Sector hotelero: 0,5% – 1,5%</div>
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {[
+            { label: "Likes",       valor: "830", desc: "Me gusta en Reels"   },
+            { label: "Comentarios", valor: "25",  desc: "Respuestas escritas" },
+            { label: "Guardados",   valor: "99",  desc: "Posts guardados"     },
+            { label: "Compartidos", valor: "114", desc: "Enviado a terceros"  },
+          ].map(k => (
+            <div key={k.label} style={{
+              background: P.bg, border: `1px solid ${P.bordeClaro}`,
+              borderRadius: 8, padding: "12px 10px"
+            }}>
+              <div style={{
+                color: P.titulo, fontWeight: 700, fontSize: "1.3rem", fontFamily: "Georgia, serif"
+              }}>{k.valor}</div>
+              <div style={{ color: P.acento, fontSize: "0.8rem", fontWeight: 600, marginTop: 2 }}>{k.label}</div>
+              <div style={{ color: P.suave, fontSize: "0.72rem", marginTop: 2 }}>{k.desc}</div>
+            </div>
+          ))}
+        </div>
+        <Plegable
+          que="Porcentaje de seguidores que interactúa activamente con el contenido. Se calcula dividiendo las interacciones totales por el número de seguidores."
+          implica={`Con ${eng}% Domus Mare supera el promedio del sector hotelero. Los guardados (99) y compartidos (114) son los indicadores de mayor valor, ya que reflejan contenido que la audiencia considera útil o inspirador.`} />
+      </Card>
+    </>)}
+
+    {/* ══════════════ AUDIENCIA ══════════════ */}
+    {tab === "Audiencia" && (<>
+
+      <Seccion titulo="Género de los Seguidores" />
+      <Torta titulo="Quiénes siguen la cuenta"
+        datos={[
+          { name: "Mujeres", value: 68.1, color: P.acento },
+          { name: "Hombres", value: 31.9, color: "#8ab4d8" },
+        ]}
+        que="Distribución por género de las personas que siguen activamente la cuenta."
+        implica="Las mujeres son el 68,1% de los seguidores y la principal tomadora de decisiones en reservas, escapadas en pareja y celebraciones. El contenido debe dirigirse a una mujer adulta de 35 a 54 años." />
+
+      <Torta titulo="Quiénes ven el contenido (incluye no seguidores)"
+        datos={[
+          { name: "Mujeres", value: 58.6, color: P.acento },
+          { name: "Hombres", value: 41.4, color: "#8ab4d8" },
+        ]}
+        que="Género de todas las personas que vieron el contenido, incluyendo quienes llegaron por anuncios y no siguen la cuenta."
+        implica="Los hombres tienen mayor presencia entre quienes ven el contenido (41,4%) versus quienes siguen la cuenta (31,9%). Los anuncios están llegando a una audiencia más equilibrada en género." />
+
+      <Seccion titulo="Edad de los Seguidores" />
+      <BarrasH titulo="Distribución por rango etario"
+        datos={[
+          { rango: "13 – 17 años", pct: 0.0 },
+          { rango: "18 – 24 años", pct: 1.6 },
+          { rango: "25 – 34 años", pct: 16.3 },
+          { rango: "35 – 44 años", pct: 35.0 },
+          { rango: "45 – 54 años", pct: 27.6 },
+          { rango: "55 – 64 años", pct: 13.0 },
+          { rango: "65+ años",     pct: 6.4  },
+        ]}
+        labelKey="rango" valueKey="pct"
+        palette={["#dce8f0","#c0d4e4","#8ab4d0","#4078a8","#1a3a5c","#152e4a","#0e2038"]}
+        que="Distribución porcentual de los seguidores según su rango etario."
+        implica="El 62,6% tiene entre 35 y 54 años — adultos con capacidad de gasto que priorizan la experiencia. El grupo principal es 35–44 años (35%), seguido de 45–54 (27,6%). Solo el 1,6% tiene entre 18 y 24 años." />
+
+      <BarrasH titulo="Edad del público que ve el contenido (incluyendo anuncios)"
+        datos={[
+          { rango: "25 – 34 años", pct: 21.4 },
+          { rango: "35 – 44 años", pct: 23.7 },
+          { rango: "45 – 54 años", pct: 18.4 },
+          { rango: "55 – 64 años", pct: 13.5 },
+        ]}
+        labelKey="rango" valueKey="pct"
+        palette={["#b8973a","#a07c28","#7a5c10","#5c4008"]}
+        que="Edad de todas las personas que vieron el contenido, incluyendo no seguidores que llegaron por anuncios."
+        implica="El grupo 35–44 lidera (23,7%), seguido de 25–34 (21,4%). Los anuncios captan bien al público objetivo y también al segmento más joven con potencial de fidelización." />
+
+      <Seccion titulo="Ubicación Geográfica" />
+      <BarrasH titulo="Ciudades de procedencia — nuevos seguidores"
+        datos={[
+          { ciudad: "Santiago de Chile", pct: 83.4 },
+          { ciudad: "Rancagua",          pct: 1.1  },
+          { ciudad: "Concepción",         pct: 0.8  },
+          { ciudad: "Colina",             pct: 0.7  },
+          { ciudad: "Curicó",             pct: 0.6  },
+        ]}
+        labelKey="ciudad" valueKey="pct"
+        palette={["#1a3a5c","#2d5986","#4078a8","#6096c0","#8ab4d8"]}
+        que="De qué ciudades son las personas que comenzaron a seguir la cuenta durante el período analizado."
+        implica="El 83,4% de nuevos seguidores proviene de Santiago. La audiencia es el turista de fin de semana santiaguino que busca una experiencia de calidad en Viña del Mar." />
+
+      <BarrasH titulo="Países — distribución de visualizaciones"
+        datos={[
+          { pais: "Chile",          pct: 99.6 },
+          { pais: "Argentina",      pct: 0.1  },
+          { pais: "España",         pct: 0.1  },
+          { pais: "Estados Unidos", pct: 0.1  },
+        ]}
+        labelKey="pais" valueKey="pct"
+        palette={["#1a4731","#2d6b44","#4a9660","#7ac08a"]}
+        que="Distribución por país de todas las personas que vieron algún contenido de la cuenta."
+        implica="El 99,6% del alcance es Chile. La estrategia es completamente local, coherente con el perfil de un hotel boutique de turismo interno." />
+
+      <Seccion titulo="Horarios de Mayor Actividad" />
+      <BarrasV titulo="Nivel de actividad de los seguidores por hora del día"
+        datos={[
+          { hora: "0h",  val: 45 }, { hora: "3h",  val: 15 },
+          { hora: "6h",  val: 30 }, { hora: "9h",  val: 55 },
+          { hora: "12h", val: 68 }, { hora: "15h", val: 88 },
+          { hora: "18h", val: 100}, { hora: "21h", val: 82 },
+        ]}
+        que="Muestra en qué horas del día los seguidores están más activos en Instagram, basado en el comportamiento real de la audiencia."
+        implica="La actividad máxima se concentra entre las 15:00 y las 21:00 hrs. Se recomienda publicar entre las 12:00 y las 14:00 para que el algoritmo distribuya el contenido justo cuando el tráfico es mayor." />
+
+    </>)}
+
+    {/* ══════════════ CONTENIDO ══════════════ */}
+    {tab === "Contenido" && (<>
+
+      <Seccion titulo="Origen del Alcance · 30 días" />
+      <Torta titulo="Distribución del alcance por tipo de audiencia"
+        datos={[
+          { name: "Personas nuevas (no seguidores)", value: 70.8, color: P.acento },
+          { name: "Seguidores actuales",             value: 29.2, color: "#8ab4d8" },
+        ]}
+        que="Qué proporción del alcance provino de personas que no siguen la cuenta versus personas que ya la siguen."
+        implica="El 70,8% del contenido fue visto por personas que no siguen la cuenta. Indica buen nivel de descubrimiento, aunque gran parte proviene de anuncios pagados." />
+
+      <Seccion titulo="Rendimiento por Formato" />
+      <BarrasH titulo="Visualizaciones por tipo de contenido · 30 días"
+        datos={[
+          { formato: "Publicaciones (fotos)", pct: 54.5 },
+          { formato: "Reels (videos)",        pct: 31.9 },
+          { formato: "Historias (Stories)",   pct: 13.5 },
+        ]}
+        labelKey="formato" valueKey="pct"
+        palette={[P.acento, P.dorado, P.suave]}
+        que="Qué tipo de contenido acumuló más visualizaciones durante el período."
+        implica="Las fotos generan más vistas (54,5%), pero con menor tasa de interacción. Los Reels tienen menos alcance pero generan más respuesta activa." />
+
+      <BarrasH titulo="Interacciones por tipo de contenido · 90 días"
+        datos={[
+          { formato: "Reels (videos)",        pct: 52.7 },
+          { formato: "Publicaciones (fotos)", pct: 35.1 },
+          { formato: "Historias (Stories)",   pct: 12.2 },
+        ]}
+        labelKey="formato" valueKey="pct"
+        palette={[P.dorado, P.acento, P.suave]}
+        que="En qué formato la audiencia interactuó más: likes, comentarios, guardados y compartidos."
+        implica="Los Reels lideran en interacciones (52,7%) siendo el formato más eficiente para generar comunidad activa. Se recomienda aumentar su frecuencia de publicación." />
+
+      <Seccion titulo="Contenido Más Visto · Mayo 2026" />
+      {[
+        { pos: "01", titulo: "Cortesía Armada Chile",  fecha: "21 de mayo", vistas: "20.000" },
+        { pos: "02", titulo: "Día de la Madre",        fecha: "5 de mayo",  vistas: "17.000" },
+        { pos: "03", titulo: "Terraza vista al mar",   fecha: "24 de mayo", vistas: "11.000" },
+        { pos: "04", titulo: "Cóctel margarita",       fecha: "7 de mayo",  vistas: "6.600"  },
+      ].map(c => (
+        <Card key={c.titulo} style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+            <div style={{ color: P.dorado, fontSize: "1.1rem", fontWeight: 700, fontFamily: "Georgia, serif", minWidth: 26 }}>{c.pos}</div>
+            <div>
+              <div style={{ color: P.titulo, fontWeight: 600, fontSize: "0.92rem" }}>{c.titulo}</div>
+              <div style={{ color: P.suave, fontSize: "0.78rem", marginTop: 3 }}>{c.fecha}</div>
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ color: P.acento, fontWeight: 700, fontSize: "1.15rem", fontFamily: "Georgia, serif" }}>{c.vistas}</div>
+            <div style={{ color: P.suave, fontSize: "0.7rem" }}>visualizaciones</div>
+          </div>
+        </Card>
+      ))}
+      <Card style={{ background: P.doradoClaro, border: `1px solid #d4ba6a`, marginBottom: 12 }}>
+        <div style={{ color: "#7a5c10", fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 6 }}>Patrón Identificado</div>
+        <div style={{ color: P.subtitulo, fontSize: "0.88rem", lineHeight: 1.75 }}>
+          El contenido vinculado a fechas relevantes o beneficios concretos genera en promedio 3 veces más visualizaciones que el contenido genérico de ambiente o producto.
+        </div>
+      </Card>
+
+      <Seccion titulo="Reels con Mayor Interacción · 90 días" />
+      {[
+        { pos: "01", fecha: "22 de marzo", likes: 93 },
+        { pos: "02", fecha: "12 de abril", likes: 84 },
+        { pos: "03", fecha: "30 de abril", likes: 72 },
+        { pos: "04", fecha: "15 de marzo", likes: 59 },
+      ].map(r => (
+        <Card key={r.fecha} style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+            <div style={{ color: P.dorado, fontSize: "1.1rem", fontWeight: 700, fontFamily: "Georgia, serif" }}>{r.pos}</div>
+            <span style={{ color: P.subtitulo, fontSize: "0.9rem" }}>Reel publicado el {r.fecha}</span>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ color: P.acento, fontWeight: 700, fontSize: "1.1rem", fontFamily: "Georgia, serif" }}>{r.likes}</div>
+            <div style={{ color: P.suave, fontSize: "0.7rem" }}>likes</div>
+          </div>
+        </Card>
+      ))}
+      <Plegable
+        que="Los Reels con mayor número de likes del período de 90 días, ordenados de mayor a menor."
+        implica="Se recomienda analizar el estilo de los Reels de marzo y abril para identificar los elementos que generaron mayor respuesta y replicar esa línea editorial." />
+
+    </>)}
+
+    {/* ══════════════ ANUNCIOS ══════════════ */}
+    {tab === "Anuncios" && (<>
+      <Card style={{ background: "#fff8ee", border: `1px solid #e8c87a`, marginTop: 16, marginBottom: 4 }}>
+        <div style={{ color: "#7a5c10", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>Dato Relevante</div>
+        <p style={{ color: P.subtitulo, fontSize: "0.88rem", margin: 0, lineHeight: 1.7 }}>
+          El <strong>66,6% del alcance total</strong> proviene de publicaciones pautadas. El alcance orgánico representa únicamente el <strong>33,4%</strong>.
+        </p>
+      </Card>
+
+      <Seccion titulo="Rendimiento de Anuncios · 90 días" />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <KPI label="Visualizaciones" valor="186.439"
+          que="Cuántas veces fueron vistas las publicaciones pautadas. Incluye repeticiones del mismo usuario."
+          implica="186 mil visualizaciones pagadas en 90 días confirma una inversión activa en pauta." />
+        <KPI label="Personas alcanzadas" valor="78.288"
+          que="Cuentas únicas que vieron al menos un anuncio. No contabiliza repeticiones."
+          implica="78 mil personas únicas — más de 4 veces la base de seguidores (18.422)." />
+        <KPI label="Interacciones" valor="23.252"
+          que="Acciones realizadas sobre los anuncios: likes, comentarios, clics y guardados."
+          implica="23.252 interacciones indica que los anuncios están bien segmentados y conectan con el público objetivo." />
+        <KPI label="Clics al enlace" valor="3.958"
+          que="Cuántas veces alguien tocó el enlace dentro de un anuncio para ir al sitio web o reservas."
+          implica="3.958 clics representan tráfico altamente calificado con intención real de reservar." />
+      </div>
+      <KPI label="Seguidores ganados mediante anuncios" valor="540" sub="64,8% del total de 833 netos en 90 días"
+        que="Cuántas personas empezaron a seguir la cuenta directamente como resultado de ver un anuncio."
+        implica="Sin inversión publicitaria, el crecimiento orgánico habría sido de solo 293 seguidores netos en 90 días." />
+
+      <Seccion titulo="Anuncios con Mayor Alcance · 90 días" />
+      {[
+        { pos: "01", titulo: "Happy Hour en Caipirosha y Aperol Spritz", alcance: "13.373" },
+        { pos: "02", titulo: "Día de la Madre en Domus Mare",            alcance: "11.427" },
+        { pos: "03", titulo: "Tributo Camilo Sesto",                     alcance: "9.512"  },
+      ].map(a => (
+        <Card key={a.titulo} style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+            <div style={{ color: P.dorado, fontSize: "1.1rem", fontWeight: 700, fontFamily: "Georgia, serif" }}>{a.pos}</div>
+            <div style={{ color: P.titulo, fontWeight: 600, fontSize: "0.88rem", maxWidth: 180, lineHeight: 1.4 }}>{a.titulo}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ color: P.verdeOsc, fontWeight: 700, fontSize: "1.1rem", fontFamily: "Georgia, serif" }}>{a.alcance}</div>
+            <div style={{ color: P.suave, fontSize: "0.7rem" }}>personas</div>
+          </div>
+        </Card>
+      ))}
+      <Plegable
+        que="Los tres anuncios que llegaron a más personas únicas en el período de 90 días."
+        implica="Las ofertas directas y las fechas especiales superan consistentemente al contenido de imagen de marca. El Tributo Camilo Sesto funciona bien para el perfil etario de 35 a 54 años." />
+
+      <Seccion titulo="Balance: Alcance Orgánico vs. Pagado" />
+      <Card>
+        {[
+          { label: "Alcance pagado (anuncios)",       pct: 66.6, color: P.dorado     },
+          { label: "Alcance orgánico (sin inversión)", pct: 33.4, color: P.verdeOsc  },
+        ].map(b => (
+          <div key={b.label} style={{ marginBottom: 18 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
+              <span style={{ color: P.subtitulo, fontWeight: 600, fontSize: "0.9rem" }}>{b.label}</span>
+              <span style={{ color: P.titulo, fontWeight: 800, fontSize: "1rem", fontFamily: "Georgia, serif" }}>{b.pct}%</span>
+            </div>
+            <div style={{ background: P.bordeClaro, borderRadius: 5, height: 18, overflow: "hidden" }}>
+              <div style={{ width: `${b.pct}%`, background: b.color, height: "100%", borderRadius: 5 }} />
+            </div>
+          </div>
+        ))}
+        <Plegable
+          que="Qué proporción del alcance total proviene de contenido pagado versus contenido distribuido sin inversión."
+          implica="Una dependencia del 66,6% en pauta implica que si se reduce la inversión, el alcance disminuiría a la mitad. El objetivo es incrementar el alcance orgánico al 50% con Reels y contenido colaborativo." />
+      </Card>
+
+    </>)}
+
+    {/* ══════════════ ESTRATEGIA ══════════════ */}
+    {tab === "Estrategia" && (<>
+
+      <Seccion titulo="Perfil de la Audiencia" />
+      <Card>
+        <div style={{ color: P.suave, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 14 }}>
+          Caracterización del seguidor promedio — basada en datos reales
+        </div>
+        {[
+          { label: "Género",           valor: "Mujer (68,1%)",        detalle: "Principal tomadora de decisiones en reservas y celebraciones" },
+          { label: "Edad",             valor: "35 – 54 años (62,6%)", detalle: "Adulta con experiencia y capacidad de gasto" },
+          { label: "Ciudad de origen", valor: "Santiago (83,4%)",     detalle: "Busca experiencias de calidad en Viña del Mar los fines de semana" },
+          { label: "País",             valor: "Chile (99,6%)",         detalle: "Audiencia completamente local, turismo interno" },
+          { label: "Horario activo",   valor: "15:00 – 21:00 hrs",    detalle: "Tarde y noche, mayor actividad los domingos" },
+        ].map((item, i) => (
+          <div key={item.label} style={{
+            padding: "12px 0",
+            borderBottom: i < 4 ? `1px solid ${P.bordeClaro}` : "none"
+          }}>
+            <div style={{ color: P.suave, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>{item.label}</div>
+            <div style={{ color: P.titulo, fontSize: "0.98rem", fontWeight: 700, marginTop: 3, fontFamily: "Georgia, serif" }}>{item.valor}</div>
+            <div style={{ color: P.texto, fontSize: "0.82rem", marginTop: 3 }}>{item.detalle}</div>
+          </div>
+        ))}
+      </Card>
+
+      <Seccion titulo="Recomendaciones" />
+      {[
+        { nivel: "Urgente",        color: P.rojoOsc, bg: P.rojoPale, borde: "#f5a0a0",
+          titulo: "Ajustar el horario de publicación",
+          accion: "Publicar el contenido entre las 12:00 y las 14:00 horas.",
+          porque: "El pico de actividad de la audiencia ocurre entre las 15:00 y las 21:00 hrs. Publicar antes permite que el algoritmo distribuya el contenido justo cuando hay mayor tráfico." },
+        { nivel: "Alta Prioridad", color: "#7a3c00", bg: "#fff3e0", borde: "#f0b070",
+          titulo: "Desarrollar un calendario de fechas clave",
+          accion: "Mapear las fechas relevantes del año: 18 de Septiembre, Día del Padre, Navidad, San Valentín, entre otras.",
+          porque: "Cortesía Armada Chile (20.000 vistas) y Día de la Madre (17.000 vistas) superaron 3 veces el promedio. El contenido anclado a fechas reales genera alcance orgánico masivo." },
+        { nivel: "Alta Prioridad", color: "#7a3c00", bg: "#fff3e0", borde: "#f0b070",
+          titulo: "Verificar el destino del enlace en la bio",
+          accion: "Confirmar que el link en la bio lleve directamente a la página de reservas.",
+          porque: "265 personas tocaron ese enlace en 30 días (+42,5%). Cada paso adicional entre el clic y la reserva representa una oportunidad perdida." },
+        { nivel: "Media Prioridad",color: P.acento,  bg: P.azulPale,  borde: "#a8c4d8",
+          titulo: "Incrementar la producción de Reels",
+          accion: "Publicar entre 2 y 3 Reels semanales: terraza, cócteles, eventos y vista al mar.",
+          porque: "Los Reels generan el 52,7% de las interacciones siendo solo el 31,9% de las visualizaciones. Son el formato con mejor eficiencia en engagement." },
+        { nivel: "Media Prioridad",color: P.acento,  bg: P.azulPale,  borde: "#a8c4d8",
+          titulo: "Reducir la dependencia de pauta publicitaria",
+          accion: "Implementar Reels virales, colaboraciones y contenido generado por clientes para elevar el alcance orgánico al 50%.",
+          porque: "El 66,6% del alcance depende de inversión. Una reducción del presupuesto implicaría perder aproximadamente la mitad de la visibilidad." },
+      ].map(r => (
+        <Card key={r.titulo} style={{
+          marginBottom: 12, background: r.bg,
+          border: `1px solid ${r.borde}`, borderLeftWidth: 4, borderLeftColor: r.color
+        }}>
+          <div style={{ marginBottom: 8 }}>
+            <span style={{
+              color: r.color, fontSize: "0.68rem", fontWeight: 800,
+              letterSpacing: "0.1em", textTransform: "uppercase",
+              background: "rgba(255,255,255,0.7)", padding: "3px 10px", borderRadius: 4
+            }}>{r.nivel}</span>
+          </div>
+          <div style={{ color: P.titulo, fontWeight: 700, fontSize: "0.95rem", marginBottom: 10, fontFamily: "Georgia, serif" }}>{r.titulo}</div>
+          <div style={{ color: P.subtitulo, fontSize: "0.86rem", marginBottom: 8, lineHeight: 1.75 }}>
+            <strong style={{ color: P.texto }}>Acción:</strong> {r.accion}
+          </div>
+          <div style={{ color: P.texto, fontSize: "0.84rem", lineHeight: 1.75 }}>
+            <strong>Justificación:</strong> {r.porque}
+          </div>
+        </Card>
+      ))}
+
+      <Seccion titulo="Indicadores a Monitorear Mensualmente" />
+      {[
+        { metrica: "Tasa de engagement",       actual: `${eng}%`,          meta: "Superar 1,5%",       desc: "Porcentaje de seguidores que interactúa. Indica si la comunidad está activa." },
+        { metrica: "Crecimiento neto mensual", actual: "+457 (mayo 2026)", meta: "+600 por mes",        desc: "Nuevos seguidores menos los que se retiran. Refleja la velocidad de crecimiento real." },
+        { metrica: "Alcance orgánico",          actual: "33,4% del total",  meta: "Alcanzar el 50%",    desc: "Porcentaje del alcance sin inversión. Refleja independencia del presupuesto publicitario." },
+        { metrica: "Clics al enlace externo",   actual: "265 por mes",      meta: "Superar 350 por mes", desc: "Personas que tocaron el link de reservas. El indicador más cercano a ingresos directos." },
+      ].map(m => (
+        <Card key={m.metrica} style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+            <span style={{ color: P.titulo, fontSize: "0.92rem", fontWeight: 700, fontFamily: "Georgia, serif" }}>{m.metrica}</span>
+            <span style={{ color: P.verdeOsc, fontSize: "0.82rem", fontWeight: 600, background: P.verdePale, padding: "3px 10px", borderRadius: 4 }}>Meta: {m.meta}</span>
+          </div>
+          <div style={{ color: P.texto, fontSize: "0.84rem", marginBottom: 5 }}>Valor actual: <strong>{m.actual}</strong></div>
+          <div style={{ color: P.suave, fontSize: "0.8rem", lineHeight: 1.6 }}>{m.desc}</div>
+        </Card>
+      ))}
+
+      <Card style={{ background: P.azulPale, border: `1px solid #a8c4d8`, marginTop: 8 }}>
+        <div style={{ color: P.suave, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 10 }}>Conclusión</div>
+        <p style={{ color: P.subtitulo, fontSize: "0.9rem", lineHeight: 1.85, margin: 0 }}>
+          Domus Mare cuenta con una base consolidada de <strong style={{ color: P.titulo }}>18.422 seguidores</strong> con crecimiento estable del +4,7% trimestral, y una audiencia bien definida: <strong style={{ color: P.titulo }}>mujer adulta santiaguina de 35 a 54 años</strong>, con capacidad de gasto y disposición a vivir experiencias de calidad en Viña del Mar.<br /><br />
+          El desafío central es reducir la dependencia de pauta publicitaria (66,6% del alcance). La mayor oportunidad está en <strong style={{ color: P.acento }}>Reels de calidad, contenido editorial vinculado a fechas clave, y en optimizar el enlace de la bio para que conduzca directamente al sistema de reservas</strong>.
+        </p>
+      </Card>
+
+    </>)}
+
+    <div style={{ marginTop: 36, color: P.suave, fontSize: "0.7rem", textAlign: "center", letterSpacing: "0.08em" }}>
+      Datos extraídos de Instagram Insights · Elaborado junio 2026
+    </div>
+  </div>
+</div>
+```
+
+);
+}
